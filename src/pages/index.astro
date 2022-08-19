@@ -1,5 +1,6 @@
 ---
-import MainHead from '../components/MainHead.astro';
+import MainHead from '~/components/MainHead.astro';
+import { Img } from "astro-imagetools/components";
 ---
 <html lang="en">
   <head>
@@ -10,6 +11,8 @@ import MainHead from '../components/MainHead.astro';
   </head>
   <body>
     <main class="wrapper mt4 mb4">
+      HI
+      <Img src="https://picsum.photos/1024/768" alt="" />
     </main>
   </body>
 </html>

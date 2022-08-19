@@ -966,6 +966,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nanostores/solid@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@nanostores/solid@npm:0.2.0"
+  dependencies:
+    nanostores: ^0.6.0
+  peerDependencies:
+    nanostores: ^0.6.0
+    solid-js: ">=1.4.0"
+  checksum: ac3b1a7159c828358d9cb6adcf04a1f3afd1f4545a8b274af06075e3396ce1ca6c1297105038dd09af63cf045828a4f2a99ab6ceb46960db8918927283229df3
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -1407,8 +1419,10 @@ __metadata:
     "@astrojs/prefetch": ^0.0.7
     "@astrojs/sitemap": ^1.0.0
     "@astrojs/solid-js": ^1.0.0
+    "@nanostores/solid": ^0.2.0
     astro: ^1.0.6
     astro-imagetools: ^0.6.10
+    nanostores: ^0.6.0
     sass: ^1.52.2
     solid-js: ^1.4.3
   languageName: unknown
@@ -4300,6 +4314,13 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 2fddd6dee994b7676f008d3ffa4ab16035a754f4bb586c61df5a22cf8c8c94017aadd360368f47d653829e0569a92b129979152ff97af23a558331e47e37cd9c
+  languageName: node
+  linkType: hard
+
+"nanostores@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "nanostores@npm:0.6.0"
+  checksum: 48e699df22e2f51f4333f827c8693ce1e4838fed3fb31ff4896efc66583143cf8cec6d34f9b3ec83b9e8d95439bbdcc3bf44dc6292d84e696e756357a131a092
   languageName: node
   linkType: hard
 
