@@ -18,5 +18,5 @@
     "sass": "^1.52.2",
     "solid-js": "^1.4.3"
   },
-  "dependencies": {}
+  "packageManager": "yarn@3.2.2"
 }
