@@ -1,12 +1,4 @@
-# Astro Starter Kit: Portfolio
-
-```
-npm init astro -- --template portfolio
-```
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/portfolio)
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+# Simple Shop built with Astro and SolidJS
 
 ## 🧞 Commands
 
