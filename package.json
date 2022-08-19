@@ -10,11 +10,11 @@
     "astro": "astro"
   },
   "devDependencies": {
-    "@astrojs/image": "^0.3.4",
     "@astrojs/prefetch": "^0.0.7",
     "@astrojs/sitemap": "^1.0.0",
     "@astrojs/solid-js": "^1.0.0",
     "astro": "^1.0.6",
+    "astro-imagetools": "^0.6.10",
     "sass": "^1.52.2",
     "solid-js": "^1.4.3"
   },
