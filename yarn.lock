@@ -88,6 +88,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/netlify@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@astrojs/netlify@npm:1.0.1"
+  dependencies:
+    "@astrojs/webapi": ^1.0.0
+    esbuild: ^0.14.43
+  checksum: fdcef32fede7bcfec896cb40bcb813977aafc24e787c5ee2abd9a8b74d4250c94f21a759296b364c227450b79c2a222d79e26bb090338aee78c9364a81866fc3
+  languageName: node
+  linkType: hard
+
 "@astrojs/prefetch@npm:^0.0.7":
   version: 0.0.7
   resolution: "@astrojs/prefetch@npm:0.0.7"
@@ -1416,6 +1426,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "astro-solid-shop@workspace:."
   dependencies:
+    "@astrojs/netlify": ^1.0.1
     "@astrojs/prefetch": ^0.0.7
     "@astrojs/sitemap": ^1.0.0
     "@astrojs/solid-js": ^1.0.0
