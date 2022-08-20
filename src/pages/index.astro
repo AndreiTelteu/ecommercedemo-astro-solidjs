@@ -1,18 +1,11 @@
 ---
-import MainHead from '~/components/MainHead.astro';
+import MainLayout from '~/layouts/MainLayout.astro';
 import { Img } from "astro-imagetools/components";
+
 ---
-<html lang="en">
-  <head>
-    <MainHead
-      title="Jeanine White: Personal Site"
-      description="Jeanine White: Developer, Speaker, and Writer..."
-    />
-  </head>
-  <body>
-    <main class="wrapper mt4 mb4">
-      HI
-      <Img src="https://picsum.photos/1024/768" alt="" />
-    </main>
-  </body>
-</html>
+<MainLayout head={{title: "Astro Shop"}}>
+  <main class="wrapper mt4 mb4">
+    HI
+    <Img src="https://picsum.photos/1024/768" alt="" />
+  </main>
+</MainLayout>
