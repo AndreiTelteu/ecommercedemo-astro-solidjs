@@ -1,5 +1,5 @@
 import { atom, map, MapStore, WritableAtom } from 'nanostores';
-import type { Product, CartProduct } from '~/types';
+import type { Product, CartProduct } from '~/lib/types';
 
 interface CartStore {
   open: WritableAtom<Boolean>,
