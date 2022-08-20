@@ -65,7 +65,6 @@ const { content } = Astro.props;
 		</style>
 	</head>
 	<body>
-		<Nav />
 		<header style={`background-image:url(${content.img})`} class="hero">
 			<h1 class="title">{content.title}</h1>
 		</header>
@@ -80,9 +79,7 @@ const { content } = Astro.props;
 		</div>
 		<footer class="tac mt6">
 			<a href="/projects">
-				<Button>View More</Button>
 			</a>
 		</footer>
-		<Footer />
 	</body>
 </html>
