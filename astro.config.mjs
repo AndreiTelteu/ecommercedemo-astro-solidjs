@@ -11,7 +11,7 @@ export default defineConfig({
     solidJs(),
     // prefetch(),
     // sitemap(),
-    // astroImageTools,
+    astroImageTools,
   ],
   adapter: netlify(),
   output: 'server'
