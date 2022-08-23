@@ -14,6 +14,7 @@
     "@astrojs/prefetch": "^0.0.7",
     "@astrojs/sitemap": "^1.0.0",
     "@astrojs/solid-js": "^1.0.0",
+    "@astrojs/vercel": "^1.0.1",
     "@nanostores/solid": "^0.2.0",
     "astro": "^1.0.7",
     "astro-imagetools": "^0.6.10",

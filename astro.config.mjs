@@ -4,6 +4,7 @@ import prefetch from "@astrojs/prefetch";
 import sitemap from "@astrojs/sitemap";
 import { astroImageTools } from "astro-imagetools";
 import netlify from '@astrojs/netlify/functions';
+import vercel from "@astrojs/vercel/serverless";
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,8 +12,9 @@ export default defineConfig({
     solidJs(),
     // prefetch(),
     // sitemap(),
-    astroImageTools,
+    // astroImageTools,
   ],
-  adapter: netlify(),
+  // adapter: netlify(),
+  adapter: vercel(),
   output: 'server'
 });
