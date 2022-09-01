@@ -1,5 +1,5 @@
 import type { APIContext } from 'astro';
-// import api from '~/lib/api';
+import api from '~/lib/api';
 
 export async function get({ request }: APIContext) {
   const headers = {
@@ -7,8 +7,7 @@ export async function get({ request }: APIContext) {
     'Content-Type': 'application/xml',
   };
   let parsed = new URL(request.url);
-  // let { products } = await api.getProducts();
-  let products = [];
+  let { products } = await api.getProducts();
   return {
     headers,
     body: `<?xml version="1.0" encoding="UTF-8" ?>

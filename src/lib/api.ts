@@ -1,10 +1,9 @@
-import axios from 'axios';
 import type { Product } from '~/lib/types';
 
 const api: any = {};
 
 api.getProducts = async (filters = {}) => {
-  const { data } = await axios.get("https://dummyjson.com/products?limit=100");
+  const data = await fetch("https://dummyjson.com/products?limit=100").then(r => r.json());
   const { products } = data;
   
   let categories: string[] = [];
