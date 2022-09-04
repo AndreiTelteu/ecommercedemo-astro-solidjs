@@ -1,10 +1,13 @@
 ---
 import MainLayout from '~/layouts/MainLayout.astro';
+import ProductCatalog from '~/components/ProductCatalog/ProductCatalog.jsx';
+import api from '~/lib/api';
 
+let { products, categories } = await api.getProducts();
 ---
 <MainLayout head={{title: "Astro Shop"}}>
-  <main class="wrapper mt4 mb4">
+  <main class="container">
     HI
-    <img src="https://picsum.photos/1024/768" alt="" />
+    <ProductCatalog client:idle products={products} categories={categories} />
   </main>
 </MainLayout>

@@ -16,3 +16,8 @@ a {
 a:hover {
   text-decoration: none;
 }
+
+.container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+}
