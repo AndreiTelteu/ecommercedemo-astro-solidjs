@@ -1,13 +1,12 @@
 ---
 import MainLayout from '~/layouts/MainLayout.astro';
-import ProductCatalog from '~/components/ProductCatalog/ProductCatalog.jsx';
+import ProductCatalog from '~/components/ProductCatalog/ProductCatalog';
 import api from '~/lib/api';
 
 let { products, categories } = await api.getProducts();
 ---
 <MainLayout head={{title: "Astro Shop"}}>
   <main class="container">
-    HI
     <ProductCatalog client:idle products={products} categories={categories} />
   </main>
 </MainLayout>
