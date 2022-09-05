@@ -1,52 +1,74 @@
 import * as adapter from '@astrojs/netlify/netlify-functions.js';
-import { ssr, renderToString as renderToString$1, createComponent as createComponent$1 } from 'solid-js/web';
+import { renderToString as renderToString$1, ssr, createComponent as createComponent$1, ssrHydrationKey, ssrAttribute, escape as escape$1 } from 'solid-js/web';
 import { escape } from 'html-escaper';
-/* empty css                            *//* empty css                        */import crypto from 'node:crypto';
-import objectHash from 'object-hash';
-import fs from 'node:fs';
-import path, { extname, basename, join, relative, resolve } from 'node:path';
-import util from 'node:util';
-import potrace from 'potrace';
-import { findUp } from 'find-up';
-import findCacheDir from 'find-cache-dir';
-import { fileURLToPath } from 'node:url';
+/* empty css                            *//* empty css                        */import { createSignal, createResource, onMount, For, Show } from 'solid-js';
+import Fuse from 'fuse.js';
 import 'mime';
 import 'kleur/colors';
 import 'string-width';
 import 'path-browserify';
 import { compile } from 'path-to-regexp';
 
+const contexts = /* @__PURE__ */ new WeakMap();
+function getContext(result) {
+  if (contexts.has(result)) {
+    return contexts.get(result);
+  }
+  let ctx = {
+    c: 0,
+    get id() {
+      return "s" + this.c.toString();
+    }
+  };
+  contexts.set(result, ctx);
+  return ctx;
+}
+function incrementId(ctx) {
+  let id = ctx.id;
+  ctx.c++;
+  return id;
+}
+
 const slotName$1 = (str) => str.trim().replace(/[-_]([a-z])/g, (_, w) => w.toUpperCase());
-
 function check$1(Component, props, children) {
-	if (typeof Component !== 'function') return false;
-	const { html } = renderToStaticMarkup$1(Component, props, children);
-	return typeof html === 'string';
+  if (typeof Component !== "function")
+    return false;
+  const { html } = renderToStaticMarkup$1.call(this, Component, props, children);
+  return typeof html === "string";
 }
-
-function renderToStaticMarkup$1(Component, props, { default: children, ...slotted }) {
-	const slots = {};
-	for (const [key, value] of Object.entries(slotted)) {
-		const name = slotName$1(key);
-		slots[name] = ssr(`<astro-slot name="${name}">${value}</astro-slot>`);
-	}
-	// Note: create newProps to avoid mutating `props` before they are serialized
-	const newProps = {
-		...props,
-		...slots,
-		// In Solid SSR mode, `ssr` creates the expected structure for `children`.
-		children: children != null ? ssr(`<astro-slot>${children}</astro-slot>`) : children,
-	};
-	const html = renderToString$1(() => createComponent$1(Component, newProps));
-	return { html };
+function renderToStaticMarkup$1(Component, props, { default: children, ...slotted }, metadata) {
+  const renderId = (metadata == null ? void 0 : metadata.hydrate) ? incrementId(getContext(this.result)) : "";
+  const html = renderToString$1(
+    () => {
+      const slots = {};
+      for (const [key, value] of Object.entries(slotted)) {
+        const name = slotName$1(key);
+        slots[name] = ssr(`<astro-slot name="${name}">${value}</astro-slot>`);
+      }
+      const newProps = {
+        ...props,
+        ...slots,
+        children: children != null ? ssr(`<astro-slot>${children}</astro-slot>`) : children
+      };
+      return createComponent$1(Component, newProps);
+    },
+    {
+      renderId
+    }
+  );
+  return {
+    attrs: {
+      "data-solid-render-id": renderId
+    },
+    html
+  };
 }
-
-const _renderer1 = {
-	check: check$1,
-	renderToStaticMarkup: renderToStaticMarkup$1,
+var server_default$1 = {
+  check: check$1,
+  renderToStaticMarkup: renderToStaticMarkup$1
 };
 
-const ASTRO_VERSION = "1.0.7";
+const ASTRO_VERSION = "1.1.3";
 function createDeprecatedFetchContentFn() {
   return () => {
     throw new Error("Deprecated: Astro.fetchContent() has been replaced with Astro.glob().");
@@ -349,7 +371,7 @@ var only_prebuilt_default = `(self.Astro=self.Astro||{}).only=t=>{(async()=>awai
 
 var visible_prebuilt_default = `(self.Astro=self.Astro||{}).visible=(s,c,n)=>{const r=async()=>{await(await s())()};let i=new IntersectionObserver(e=>{for(const t of e)if(!!t.isIntersecting){i.disconnect(),r();break}});for(let e=0;e<n.children.length;e++){const t=n.children[e];i.observe(t)}},window.dispatchEvent(new Event("astro:visible"));`;
 
-var astro_island_prebuilt_default = `var d;{const l={0:t=>t,1:t=>JSON.parse(t,n),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(JSON.parse(t,n)),5:t=>new Set(JSON.parse(t,n)),6:t=>BigInt(t),7:t=>new URL(t)},n=(t,r)=>{if(t===""||!Array.isArray(r))return r;const[e,i]=r;return e in l?l[e](i):void 0};customElements.get("astro-island")||customElements.define("astro-island",(d=class extends HTMLElement{constructor(){super(...arguments);this.hydrate=()=>{if(!this.hydrator||this.parentElement?.closest("astro-island[ssr]"))return;const r=this.querySelectorAll("astro-slot"),e={},i=this.querySelectorAll("template[data-astro-template]");for(const s of i)!s.closest(this.tagName)?.isSameNode(this)||(e[s.getAttribute("data-astro-template")||"default"]=s.innerHTML,s.remove());for(const s of r)!s.closest(this.tagName)?.isSameNode(this)||(e[s.getAttribute("name")||"default"]=s.innerHTML);const o=this.hasAttribute("props")?JSON.parse(this.getAttribute("props"),n):{};this.hydrator(this)(this.Component,o,e,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),window.removeEventListener("astro:hydrate",this.hydrate),window.dispatchEvent(new CustomEvent("astro:hydrate"))}}connectedCallback(){!this.hasAttribute("await-children")||this.firstChild?this.childrenConnectedCallback():new MutationObserver((r,e)=>{e.disconnect(),this.childrenConnectedCallback()}).observe(this,{childList:!0})}async childrenConnectedCallback(){window.addEventListener("astro:hydrate",this.hydrate),await import(this.getAttribute("before-hydration-url")),this.start()}start(){const r=JSON.parse(this.getAttribute("opts")),e=this.getAttribute("client");if(Astro[e]===void 0){window.addEventListener(\`astro:\${e}\`,()=>this.start(),{once:!0});return}Astro[e](async()=>{const i=this.getAttribute("renderer-url"),[o,{default:s}]=await Promise.all([import(this.getAttribute("component-url")),i?import(i):()=>()=>{}]),a=this.getAttribute("component-export")||"default";if(!a.includes("."))this.Component=o[a];else{this.Component=o;for(const c of a.split("."))this.Component=this.Component[c]}return this.hydrator=s,this.hydrate},r,this)}attributeChangedCallback(){this.hydrator&&this.hydrate()}},d.observedAttributes=["props"],d))}`;
+var astro_island_prebuilt_default = `var l;{const c={0:t=>t,1:t=>JSON.parse(t,o),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(JSON.parse(t,o)),5:t=>new Set(JSON.parse(t,o)),6:t=>BigInt(t),7:t=>new URL(t)},o=(t,i)=>{if(t===""||!Array.isArray(i))return i;const[e,n]=i;return e in c?c[e](n):void 0};customElements.get("astro-island")||customElements.define("astro-island",(l=class extends HTMLElement{constructor(){super(...arguments);this.hydrate=()=>{if(!this.hydrator||this.parentElement&&this.parentElement.closest("astro-island[ssr]"))return;const i=this.querySelectorAll("astro-slot"),e={},n=this.querySelectorAll("template[data-astro-template]");for(const s of n){const r=s.closest(this.tagName);!r||!r.isSameNode(this)||(e[s.getAttribute("data-astro-template")||"default"]=s.innerHTML,s.remove())}for(const s of i){const r=s.closest(this.tagName);!r||!r.isSameNode(this)||(e[s.getAttribute("name")||"default"]=s.innerHTML)}const a=this.hasAttribute("props")?JSON.parse(this.getAttribute("props"),o):{};this.hydrator(this)(this.Component,a,e,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),window.removeEventListener("astro:hydrate",this.hydrate),window.dispatchEvent(new CustomEvent("astro:hydrate"))}}connectedCallback(){!this.hasAttribute("await-children")||this.firstChild?this.childrenConnectedCallback():new MutationObserver((i,e)=>{e.disconnect(),this.childrenConnectedCallback()}).observe(this,{childList:!0})}async childrenConnectedCallback(){window.addEventListener("astro:hydrate",this.hydrate),await import(this.getAttribute("before-hydration-url")),this.start()}start(){const i=JSON.parse(this.getAttribute("opts")),e=this.getAttribute("client");if(Astro[e]===void 0){window.addEventListener(\`astro:\${e}\`,()=>this.start(),{once:!0});return}Astro[e](async()=>{const n=this.getAttribute("renderer-url"),[a,{default:s}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),r=this.getAttribute("component-export")||"default";if(!r.includes("."))this.Component=a[r];else{this.Component=a;for(const d of r.split("."))this.Component=this.Component[d]}return this.hydrator=s,this.hydrate},i,this)}attributeChangedCallback(){this.hydrator&&this.hydrate()}},l.observedAttributes=["props"],l))}`;
 
 function determineIfNeedsHydrationScript(result) {
   if (result._metadata.hasHydrationScript) {
@@ -979,6 +1001,17 @@ function createComponent(cb) {
   cb.isAstroComponentFactory = true;
   return cb;
 }
+function __astro_tag_component__(Component, rendererName) {
+  if (!Component)
+    return;
+  if (typeof Component !== "function")
+    return;
+  Object.defineProperty(Component, Renderer, {
+    value: rendererName,
+    enumerable: false,
+    writable: false
+  });
+}
 function spreadAttributes(values, _name, { class: scopedClassName } = {}) {
   let output = "";
   if (scopedClassName) {
@@ -1264,10 +1297,10 @@ var server_default = {
   renderToStaticMarkup
 };
 
-const $$metadata$4 = createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/components/MainHead.astro", { modules: [], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$9 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/components/MainHead.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
+const $$metadata$4 = createMetadata("/@fs/E:/Sites/astro-solid-shop/src/components/MainHead.astro", { modules: [], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
+const $$Astro$4 = createAstro("/@fs/E:/Sites/astro-solid-shop/src/components/MainHead.astro", "", "file:///E:/Sites/astro-solid-shop/");
 const $$MainHead = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$9, $$props, $$slots);
+  const Astro2 = $$result.createAstro($$Astro$4, $$props, $$slots);
   Astro2.self = $$MainHead;
   const {
     title = "Astro Shop",
@@ -1286,15 +1319,15 @@ const $$MainHead = createComponent(async ($$result, $$props, $$slots) => {
 `;
 });
 
-const $$file$4 = "C:/Users/Andrei/Sites/astro-solid-shop/src/components/MainHead.astro";
+const $$file$4 = "E:/Sites/astro-solid-shop/src/components/MainHead.astro";
 const $$url$4 = undefined;
 
-const $$module1$6 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	$$metadata: $$metadata$4,
-	default: $$MainHead,
-	file: $$file$4,
-	url: $$url$4
+const $$module1$2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  $$metadata: $$metadata$4,
+  default: $$MainHead,
+  file: $$file$4,
+  url: $$url$4
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const menuItems = [
@@ -1378,12 +1411,12 @@ const menuItems = [
   { name: "Contact" }
 ];
 
-const $$module1$5 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	menuItems
+const $$module1$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  menuItems
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const $$metadata$3 = createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/components/Header/Header.astro", { modules: [{ module: $$module1$5, specifier: "~/lib/menu-items", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [{ type: "inline", value: `
+const $$metadata$3 = createMetadata("/@fs/E:/Sites/astro-solid-shop/src/components/Header/Header.astro", { modules: [{ module: $$module1$1, specifier: "~/lib/menu-items", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [{ type: "inline", value: `
   var headerCompactValue = 25;
   window.addEventListener('scroll', function() {
     let newCompact = 15 - Math.round((Math.min(window.scrollY, 300) / 300) * 15) +10;
@@ -1395,9 +1428,9 @@ const $$metadata$3 = createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop
     }
   });
 ` }] });
-const $$Astro$8 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/components/Header/Header.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
+const $$Astro$3 = createAstro("/@fs/E:/Sites/astro-solid-shop/src/components/Header/Header.astro", "", "file:///E:/Sites/astro-solid-shop/");
 const $$Header = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$8, $$props, $$slots);
+  const Astro2 = $$result.createAstro($$Astro$3, $$props, $$slots);
   Astro2.self = $$Header;
   const { pathname } = Astro2.url;
   return renderTemplate`
@@ -1444,21 +1477,21 @@ ${maybeRenderHead($$result)}<header>
 </header>`;
 });
 
-const $$file$3 = "C:/Users/Andrei/Sites/astro-solid-shop/src/components/Header/Header.astro";
+const $$file$3 = "E:/Sites/astro-solid-shop/src/components/Header/Header.astro";
 const $$url$3 = undefined;
 
-const $$module2$2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	$$metadata: $$metadata$3,
-	default: $$Header,
-	file: $$file$3,
-	url: $$url$3
+const $$module2$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  $$metadata: $$metadata$3,
+  default: $$Header,
+  file: $$file$3,
+  url: $$url$3
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const $$metadata$2 = createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/layouts/MainLayout.astro", { modules: [{ module: $$module1$6, specifier: "~/components/MainHead.astro", assert: {} }, { module: $$module2$2, specifier: "~/components/Header/Header.astro", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$7 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/layouts/MainLayout.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
+const $$metadata$2 = createMetadata("/@fs/E:/Sites/astro-solid-shop/src/layouts/MainLayout.astro", { modules: [{ module: $$module1$2, specifier: "~/components/MainHead.astro", assert: {} }, { module: $$module2$1, specifier: "~/components/Header/Header.astro", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
+const $$Astro$2 = createAstro("/@fs/E:/Sites/astro-solid-shop/src/layouts/MainLayout.astro", "", "file:///E:/Sites/astro-solid-shop/");
 const $$MainLayout = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$7, $$props, $$slots);
+  const Astro2 = $$result.createAstro($$Astro$2, $$props, $$slots);
   Astro2.self = $$MainLayout;
   const { head } = Astro2.props;
   return renderTemplate`<html${addAttribute("en", "lang")}>
@@ -1471,1895 +1504,159 @@ const $$MainLayout = createComponent(async ($$result, $$props, $$slots) => {
   </body></html>`;
 });
 
-const $$file$2 = "C:/Users/Andrei/Sites/astro-solid-shop/src/layouts/MainLayout.astro";
+const $$file$2 = "E:/Sites/astro-solid-shop/src/layouts/MainLayout.astro";
 const $$url$2 = undefined;
 
-const $$module1$4 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	$$metadata: $$metadata$2,
-	default: $$MainLayout,
-	file: $$file$2,
-	url: $$url$2
+const $$module1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  $$metadata: $$metadata$2,
+  default: $$MainLayout,
+  file: $$file$2,
+  url: $$url$2
 }, Symbol.toStringTag, { value: 'Module' }));
 
-// To strip off params when checking for file on disk.
-const paramPattern = /\?.*/;
-
-/**
- * getSrcPath allows the use of `src` attributes relative to either the public folder or project root.
- *
- * It first checks to see if the src is a file relative to the project root.
- * If the file isn't found, it will look in the public folder.
- * Finally, if it still can't be found, the original input will be returned.
- */
-async function getSrcPath(src) {
-  const { default: astroViteConfigs } = await import(
-    './chunks/astroViteConfigs.e6e35cf0.mjs'
-  );
-
-  // If this is already resolved to a file, return it.
-  if (fs.existsSync(src.replace(paramPattern, ""))) return src;
-
-  const rootPath = path.join(astroViteConfigs.rootDir, src);
-  const rootTest = rootPath.replace(paramPattern, "");
-  if (fs.existsSync(rootTest)) return rootPath;
-
-  const publicPath = path.join(astroViteConfigs.publicDir, src);
-  const publicTest = publicPath.replace(paramPattern, "");
-  if (fs.existsSync(publicTest)) return publicPath;
-
-  // Fallback
-  return src;
-}
-
-// @ts-check
-
-async function getSrcset(src, breakpoints, format, options) {
-  options = {
-    format,
-    w: breakpoints,
-    ...options,
-  };
-
-  const keys = Object.keys(options);
-
-  const params = keys.length
-    ? keys
-        .map((key) =>
-          Array.isArray(options[key])
-            ? `&${key}=${options[key].join(";")}`
-            : `&${key}=${options[key]}`
-        )
-        .join("")
-    : "";
-
-  const id = `${src}?${params.slice(1)}`;
-
-  if (process.env.npm_lifecycle_event !== "dev") {
-    const fullPath = await getSrcPath(id);
-
-    const { default: load } = await import('./chunks/load.efa72cdb.mjs');
-
-    const srcset = (await load(fullPath)).slice(16).slice(0, -1);
-
-    return srcset;
-  }
-
-  const srcset = (await import(id)).default;
-
-  return srcset;
-}
-
-// @ts-check
-
-const colours = {
-  reset: "\x1b[0m",
-  bright: "\x1b[1m",
-  dim: "\x1b[2m",
-  underscore: "\x1b[4m",
-  blink: "\x1b[5m",
-  reverse: "\x1b[7m",
-  hidden: "\x1b[8m",
-
-  fg: {
-    black: "\x1b[30m",
-    red: "\x1b[31m",
-    green: "\x1b[32m",
-    yellow: "\x1b[33m",
-    blue: "\x1b[34m",
-    magenta: "\x1b[35m",
-    cyan: "\x1b[36m",
-    white: "\x1b[37m",
-  },
-
-  bg: {
-    black: "\x1b[40m",
-    red: "\x1b[41m",
-    green: "\x1b[42m",
-    yellow: "\x1b[43m",
-    blue: "\x1b[44m",
-    magenta: "\x1b[45m",
-    cyan: "\x1b[46m",
-    white: "\x1b[47m",
-  },
-};
-
-function printWarning({
-  key = "",
-  type = "",
-  message = "",
-  element = "",
-}) {
-  const flag =
-    colours.bright + colours.fg.cyan + "[astro-imagetools]" + colours.reset;
-
-  const keyLog = key
-    ? " " + colours.bg.yellow + ` ${key} ` + colours.reset
-    : "";
-
-  const messageLog =
-    colours.fg.yellow +
-    (message ||
-      (!element
-        ? `is not a valid ${type} Config Option`
-        : `can't be defined inside attributes.${element}`)) +
-    colours.reset;
-
-  console.log(flag + keyLog, messageLog);
-}
-
-// @ts-check
-
-function getBreakpoints(breakpoints, imageWidth) {
-  if (Array.isArray(breakpoints)) {
-    return breakpoints.sort((a, b) => a - b);
-  }
-
-  const { count, minWidth = 320 } = breakpoints || {};
-
-  const maxWidth = (() => {
-    if (breakpoints?.maxWidth) return breakpoints.maxWidth;
-
-    if (imageWidth > 3840) {
-      printWarning({
-        message:
-          "The width of the source image is greater than 3840px. The generated breakpoints will be capped at 3840px. If you need breakpoints larger than this, please pass the maxWidth option to the breakpoints property.",
-      });
-
-      return 3840;
+const api = {};
+api.getProducts = async (filters = {}) => {
+  const data = await fetch("https://dummyjson.com/products?limit=100").then((r) => r.json());
+  const { products } = data;
+  let categories = [];
+  products.forEach((item) => {
+    if (categories.indexOf(item.category) === -1) {
+      categories.push(item.category);
     }
-
-    return imageWidth;
-  })();
-
-  const breakPoints = [];
-
-  const diff = maxWidth - minWidth;
-
-  const n =
-    count ||
-    (maxWidth <= 400
-      ? 1
-      : maxWidth <= 640
-      ? 2
-      : maxWidth <= 800
-      ? 3
-      : maxWidth <= 1024
-      ? 4
-      : maxWidth <= 1280
-      ? 5
-      : maxWidth <= 1440
-      ? 6
-      : maxWidth <= 1920
-      ? 7
-      : maxWidth <= 2560
-      ? 8
-      : maxWidth <= 2880
-      ? 9
-      : maxWidth <= 3840
-      ? 10
-      : 11);
-
-  let currentWidth = minWidth;
-
-  n > 1 && breakPoints.push(currentWidth);
-
-  let steps = 0;
-
-  for (let i = 1; i < n; i++) {
-    steps += i;
-  }
-
-  const pixelsPerStep = diff / steps;
-
-  for (let i = 1; i < n - 1; i++) {
-    const next = pixelsPerStep * (n - i) + currentWidth;
-
-    breakPoints.push(Math.round(next));
-
-    currentWidth = next;
-  }
-
-  breakPoints.push(maxWidth);
-
-  return [...new Set(breakPoints)];
-}
-
-// @ts-check
-
-function getConfigOptions(
-  imageWidth,
-  imagesizes,
-  breakpoints,
-  format,
-  imageFormat,
-  fallbackFormat,
-  includeSourceFormat
-) {
-  const formats = [
-    ...new Set(
-      [format, includeSourceFormat && imageFormat]
-        .flat()
-        .filter((f) => f && f !== fallbackFormat)
-    ),
-    fallbackFormat,
-  ];
-
-  const requiredBreakpoints = getBreakpoints(breakpoints, imageWidth);
-
-  imagesizes =
-    typeof imagesizes === "string"
-      ? imagesizes
-      : imagesizes(requiredBreakpoints);
-
+  });
   return {
-    formats,
-    imagesizes,
-    requiredBreakpoints,
-  };
-}
-
-// @ts-check
-
-function filterConfigs(
-  type,
-  configs,
-  supportedConfigs,
-  { warn = true } = {}
-) {
-  const clonedConfigs = { ...configs };
-
-  const requiredConfigs = [];
-
-  type !== "Global" && requiredConfigs.push("src");
-
-  ["Img", "Picture"].includes(type) && requiredConfigs.push("alt");
-
-  requiredConfigs.forEach((key) => {
-    if (typeof clonedConfigs[key] === "undefined") {
-      throw new Error(`The "${key}" property is required by ${type}`);
-    }
-  });
-
-  Object.keys(clonedConfigs).forEach((key) => {
-    if (!supportedConfigs.includes(key)) {
-      if (warn) {
-        if (key !== "class") {
-          printWarning({ key, type });
-        } else if (!onlyAstroClass(clonedConfigs[key])) {
-          printWarning({
-            message: `Do not provide a "class" directly to ${type}.  Instead, use attributes: https://astro-imagetools-docs.vercel.app/en/components/${type}#attributes`,
-          });
-        }
-      }
-
-      delete clonedConfigs[key];
-    }
-  });
-
-  return clonedConfigs;
-}
-
-/**
- * Checks if the `class` attribute string is only an astro-generated scoped style class.
- */
-function onlyAstroClass(classAttr) {
-  const astroClassPattern = /^astro-[0-9A-Z]{8}$/;
-  return astroClassPattern.test(classAttr);
-}
-
-// @ts-check
-
-// Sharp related checks
-const sharp = await (async () => {
-  try {
-    if (await import('sharp')) {
-      return true;
-    }
-  } catch (error) {
-    return false;
-  }
-})();
-
-const supportedImageTypes = [
-  "avif",
-  "jpeg",
-  "jpg",
-  "png",
-  "webp",
-  ...(sharp ? ["heic", "heif", "tiff", "gif"] : ["jxl", "wp2"]),
-];
-
-// prettier-ignore
-const supportedConfigs = [
-  "src", "alt", "tag", "content", "sizes", "preload", "loading", "decoding", "attributes",
-  "layout", "placeholder", "breakpoints", "objectFit", "objectPosition", "backgroundSize",
-  "backgroundPosition", "format", "fallbackFormat", "includeSourceFormat", "formatOptions",
-  "fadeInTransition", "artDirectives", "flip", "flop", "invert", "flatten", "normalize",
-  "grayscale", "hue", "saturation", "brightness", "w", "h", "ar", "width", "height", "aspect",
-  "background", "tint", "blur", "median", "rotate", "quality", "fit", "kernel", "position",
-  "cacheDir"
-];
-
-const configFile = await findUp([
-  "astro-imagetools.config.js",
-  "astro-imagetools.config.mjs",
-]);
-
-const configFunction = configFile ? await import(configFile) : null;
-
-const rawGlobalConfigOptions = configFunction?.default ?? {};
-
-const NonGlobalConfigOptions = ["src", "alt", "content"];
-
-const GlobalConfigs = supportedConfigs.filter(
-  (key) => !NonGlobalConfigOptions.includes(key)
-);
-
-const GlobalConfigOptions = filterConfigs(
-  "Global",
-  rawGlobalConfigOptions,
-  GlobalConfigs
-);
-
-// CWD
-const cwd = process.cwd().split(path.sep).join(path.posix.sep);
-
-const { cacheDir } = GlobalConfigOptions;
-
-// FS Cache related checks
-const fsCachePath =
-  (cacheDir
-    ? cwd + cacheDir
-    : findCacheDir({
-        name: "astro-imagetools",
-      })) + "/";
-
-fs.existsSync(fsCachePath) || fs.mkdirSync(fsCachePath, { recursive: true });
-
-// @ts-check
-
-async function getFallbackImage(
-  src,
-  placeholder,
-  image,
-  format,
-  formatOptions,
-  rest
-) {
-  switch (placeholder) {
-    case "blurred": {
-      const dataUri = await getSrcset(src, [20], format, {
-        inline: true,
-        ...rest,
-        ...formatOptions[format],
-      });
-
-      return dataUri;
-    }
-    case "tracedSVG": {
-      const { function: fn, options } = formatOptions.tracedSVG;
-
-      const traceSVG = util.promisify(potrace[fn]);
-
-      const imageBuffer = sharp
-        ? await image.toBuffer()
-        : Buffer.from(
-            (await image.encode(`image/${format === "jpg" ? "jpeg" : format}`))
-              .data
-          );
-
-      const tracedSVG = await traceSVG(imageBuffer, options);
-
-      return `data:image/svg+xml;utf8,${tracedSVG}`;
-    }
-    case "dominantColor": {
-      if (sharp) {
-        var { r, g, b } = (await image.stats()).dominant;
-      } else {
-        [r, g, b] = image.color;
-      }
-
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" style="background: rgb(${r},${g},${b})"></svg>`;
-
-      return `data:image/svg+xml;utf8,${svg}`;
-    }
-    default:
-      return null;
-  }
-}
-
-// @ts-check
-
-async function getImageSources(
-  src,
-  image,
-  format,
-  imageWidth,
-  imagesizes,
-  breakpoints,
-  placeholder,
-  imageFormat,
-  formatOptions,
-  fallbackFormat,
-  includeSourceFormat,
-  rest
-) {
-  const calculatedConfigs = getConfigOptions(
-    imageWidth,
-    imagesizes,
-    breakpoints,
-    format,
-    imageFormat,
-    fallbackFormat,
-    includeSourceFormat
-  );
-
-  const { formats, requiredBreakpoints } = calculatedConfigs;
-
-  imagesizes = calculatedConfigs.imagesizes;
-
-  const maxWidth = requiredBreakpoints[requiredBreakpoints.length - 1];
-  const sliceLength = -(maxWidth.toString().length + 2);
-
-  const sources = await Promise.all(
-    formats.map(async (format) => {
-      const srcset = await getSrcset(src, requiredBreakpoints, format, {
-        ...rest,
-        ...formatOptions[format],
-      });
-
-      const srcsets = srcset.split(", ");
-      const srcObject =
-        format === fallbackFormat
-          ? { src: srcsets[srcsets.length - 1].slice(0, sliceLength) }
-          : {};
-
-      return {
-        ...srcObject,
-        format,
-        srcset,
-      };
-    })
-  );
-
-  const sizes = {
-    width: maxWidth,
-    height: Math.round(maxWidth / rest.aspect),
-  };
-
-  const fallback = await getFallbackImage(
-    src,
-    placeholder,
-    image,
-    fallbackFormat,
-    formatOptions,
-    rest
-  );
-
-  return { sources, sizes, fallback, imagesizes };
-}
-
-// @ts-check
-
-const { getImageDetails } = await (sharp
-  ? import('./chunks/imagetools.7d71676c.mjs')
-  : import('./chunks/codecs.95d7f143.mjs'));
-
-// @ts-ignore
-const { fileTypeFromBuffer } = await import('file-type');
-
-const throwErrorIfUnsupported = (src, ext) => {
-  if (!ext && typeof ext !== "string") {
-    throw new Error(`Failed to load ${src}; Invalid image format`);
-  }
-
-  if (ext && !supportedImageTypes.includes(ext.toLowerCase())) {
-    throw new Error(
-      `Failed to load ${src}; Invalid image format ${ext} or the format is not supported by astro-imagetools`
-    );
-  }
-};
-
-const getProcessedImage = async (src, transformConfigs) => {
-  throwErrorIfUnsupported(src, extname(src).slice(1));
-
-  if (src.match("(http://|https://|data:image/).*")) {
-    const filename = src.startsWith("data:") ? "" : basename(src);
-
-    const hash = crypto.createHash("md5").update(src).digest("hex");
-
-    let filepath = `${fsCachePath}${filename}.${hash}`;
-
-    const fileExists = (() => {
-      for (const type of supportedImageTypes) {
-        const fileExists = fs.existsSync(filepath + `.${type}`);
-
-        if (fileExists) {
-          filepath += `.${type}`;
-
-          return true;
-        }
-      }
-    })();
-
-    if (!fileExists) {
-      const buffer = Buffer.from(await (await fetch(src)).arrayBuffer());
-
-      const { ext } = (await fileTypeFromBuffer(buffer)) || {};
-
-      throwErrorIfUnsupported(src, ext);
-
-      filepath += `.${ext}`;
-
-      fs.writeFileSync(filepath, buffer);
-    }
-
-    src = join("/", relative(cwd, filepath));
-  } else {
-    const { default: astroViteConfigs } = await import(
-      './chunks/astroViteConfigs.e6e35cf0.mjs'
-    );
-
-    const { isSsrBuild } = astroViteConfigs;
-
-    if (isSsrBuild) {
-      const filename = fileURLToPath(import.meta.url);
-
-      const assetPath = resolve(filename, "../../client") + src;
-
-      src = "/" + relative(cwd, assetPath);
-    }
-  }
-
-  const {
-    w,
-    h,
-    ar,
-    width = w,
-    height = h,
-    aspect = ar,
-    ...rest
-  } = transformConfigs;
-
-  const path = src.replace(/\\/g, `/`);
-
-  const { image, imageWidth, imageHeight, imageFormat } = await getImageDetails(
-    await getSrcPath(src),
-    width,
-    height,
-    aspect
-  );
-
-  return {
-    path,
-    rest,
-    image,
-    imageWidth,
-    imageHeight,
-    imageFormat,
+    products,
+    categories
   };
 };
 
-// @ts-check
-
-async function getArtDirectedImages(
-  artDirectives = [],
-  placeholder,
-  format,
-  imagesizes,
-  breakpoints,
-  fallbackFormat,
-  includeSourceFormat,
-  formatOptions,
-  rest
-) {
-  const images = await Promise.all(
-    artDirectives.map(
-      async ({
-        src,
-        media,
-        sizes: directiveImagesizes,
-        placeholder: directivePlaceholder,
-        breakpoints: directiveBreakpoints,
-        objectFit,
-        objectPosition,
-        backgroundSize,
-        backgroundPosition,
-        format: directiveFormat,
-        fallbackFormat: directiveFallbackFormat,
-        includeSourceFormat: directiveIncludeSourceFormat,
-        formatOptions: directiveFormatOptions = {},
-        ...configOptions
-      }) => {
-        const {
-          path,
-          rest: rest2,
-          image,
-          imageWidth,
-          imageHeight,
-          imageFormat,
-        } = await getProcessedImage(src, configOptions);
-
-        rest2.aspect = `${imageWidth / imageHeight}`;
-
-        const calculatedConfigs = getConfigOptions(
-          imageWidth,
-          directiveImagesizes || imagesizes,
-          directiveBreakpoints || breakpoints,
-          directiveFormat || format,
-          imageFormat,
-          directiveFallbackFormat || fallbackFormat,
-          directiveIncludeSourceFormat || includeSourceFormat
-        );
-
-        const { formats, requiredBreakpoints } = calculatedConfigs;
-
-        imagesizes = calculatedConfigs.imagesizes;
-
-        const maxWidth = requiredBreakpoints[requiredBreakpoints.length - 1];
-
-        const sources = await Promise.all(
-          formats.map(async (format) => {
-            const srcset = await getSrcset(path, requiredBreakpoints, format, {
-              ...rest,
-              ...rest2,
-              ...formatOptions[format],
-              ...directiveFormatOptions[format],
-            });
-
-            return {
-              format,
-              srcset,
-            };
-          })
-        );
-
-        const sizes = {
-          width: maxWidth,
-          height: Math.round(maxWidth / rest2.aspect),
-        };
-
-        const object = {
-          fit: objectFit,
-          position: objectPosition,
-        };
-
-        const fallback = await getFallbackImage(
-          path,
-          directivePlaceholder || placeholder,
-          image,
-          imageFormat,
-          { ...formatOptions, ...directiveFormatOptions },
-          { ...rest, ...rest2 }
-        );
-
-        return {
-          media,
-          sources,
-          sizes,
-          object,
-          fallback,
-          imagesizes,
-        };
-      }
-    )
-  );
-
-  return images;
-}
-
-// @ts-check
-
-const imagesData = new Map();
-
-async function getImage ({
-  src,
-  type,
-  sizes: imagesizes,
-  format,
-  breakpoints,
-  placeholder,
-  fallbackFormat,
-  includeSourceFormat,
-  formatOptions,
-  artDirectives,
-  transformConfigs,
-}) {
-  const args = Array.from(arguments);
-
-  const hash = objectHash(args);
-
-  if (imagesData.has(hash)) {
-    return imagesData.get(hash);
-  }
-
-  const start = performance.now();
-
-  const { path, rest, image, imageWidth, imageHeight, imageFormat } =
-    await getProcessedImage(src, transformConfigs);
-
-  src = path;
-
-  rest.aspect = `${imageWidth / imageHeight}`;
-
-  if (!fallbackFormat) {
-    fallbackFormat = imageFormat;
-  }
-
-  const [mainImage, artDirectedImages] = await Promise.all([
-    getImageSources(
-      src,
-      image,
-      format,
-      imageWidth,
-      imagesizes,
-      breakpoints,
-      placeholder,
-      imageFormat,
-      formatOptions,
-      fallbackFormat,
-      includeSourceFormat,
-      rest
-    ),
-    getArtDirectedImages(
-      artDirectives,
-      placeholder,
-      format,
-      imagesizes,
-      breakpoints,
-      fallbackFormat,
-      includeSourceFormat,
-      formatOptions,
-      rest
-    ),
-  ]);
-
-  const images = [...artDirectedImages, mainImage];
-
-  const uuid = crypto.randomBytes(4).toString("hex").toUpperCase();
-
-  const returnObject = {
-    uuid,
-    images,
-  };
-
-  imagesData.set(hash, returnObject);
-
-  const end = performance.now();
-
-  console.log(
-    `Responsive Image sets generated for ${type} at ${args[0].src} in ${
-      end - start
-    }ms`
-  );
-
-  return returnObject;
-}
-
-// @ts-check
-
-function getAttributesString({
-  attributes,
-  element = "",
-  excludeArray = [],
-}) {
-  const attributesString = Object.keys(attributes)
-    .filter((key) => {
-      if (excludeArray.includes(key)) {
-        printWarning({
-          key,
-          element,
-        });
-
-        return false;
-      }
-
-      return true;
-    })
-    .map((key) => `${key}="${attributes[key]}"`)
-    .join(" ");
-
-  return attributesString;
-}
-
-// @ts-check
-
-function getImgElement({
-  src,
-  alt,
-  sizes,
-  style,
-  srcset,
-  loading,
-  decoding,
-  imagesizes,
-  fadeInTransition,
-  layoutStyles,
-  imgAttributes,
-  imgClassName = "",
-}) {
-  const {
-    class: customClasses = "",
-    style: customInlineStyles = "",
-    onload: customOnload = "",
-    ...restImgAttributes
-  } = imgAttributes;
-
-  const attributesString = getAttributesString({
-    attributes: restImgAttributes,
-    element: "img",
-    excludeArray: [
-      "src",
-      "alt",
-      "srcset",
-      "sizes",
-      "width",
-      "height",
-      "loading",
-      "decoding",
-    ],
-  });
-
-  const classAttribute = ["astro-imagetools-img", imgClassName, customClasses]
-    .join(" ")
-    .trim();
-
-  const styleAttribute = [
-    "display: inline-block; overflow: hidden; vertical-align: middle;",
-    customInlineStyles + (customInlineStyles.endsWith(";") ? "" : ";"),
-    layoutStyles,
-  ]
-    .join(" ")
-    .trim();
-
-  const onloadAttribute = [
-    !imgClassName && style && fadeInTransition
-      ? `parentElement.style.setProperty('--z-index', 1);parentElement.style.setProperty('--opacity', 0);`
-      : "",
-    customOnload,
-  ]
-    .join(" ")
-    .trim();
-
-  const imgElement = `<img
-    ${attributesString}
-    src="${src}"
-    ${typeof alt === "string" ? `alt="${alt}"` : ""}
-    srcset="${srcset}"
-    sizes="${imagesizes}"
-    width="${sizes.width}"
-    height="${sizes.height}"
-    ${loading ? `loading="${loading}"` : ""}
-    ${decoding ? `decoding="${decoding}"` : ""}
-    class="${classAttribute}"
-    style="${styleAttribute}"
-    onload="${onloadAttribute}"
-  />`;
-
-  return imgElement;
-}
-
-// @ts-check
-
-function getLinkElement({
-  images = [],
-  preload = "",
-  imagesizes = "",
-  linkAttributes,
-}) {
-  const imagesrcset =
-    preload &&
-    images[images.length - 1]?.sources.find(
-      ({ format: fmt }) => fmt === preload
-    )?.srcset;
-
-  const attributesString = getAttributesString({
-    element: "link",
-    attributes: linkAttributes,
-    excludeArray: ["as", "rel", "imagesizes", "imagesrcset"],
-  });
-
-  const linkElement =
-    preload && images.length
-      ? `<link
-        ${attributesString}
-        as="image"
-        rel="preload"
-        imagesizes="${imagesizes}"
-        imagesrcset="${imagesrcset}"
-      />`
-      : "";
-
-  return linkElement;
-}
-
-// @ts-check
-
-function getStyleElement({
-  styleAttributes,
-  backgroundStyles = "",
-}) {
-  const attributesString = getAttributesString({
-    attributes: styleAttributes,
-  });
-
-  const styleElement = `<style ${attributesString}>${backgroundStyles}</style>`;
-
-  return styleElement;
-}
-
-// @ts-check
-
-function getLayoutStyles({
-  layout = null,
-  isBackgroundImage = false,
-}) {
-  return isBackgroundImage
-    ? "width: 100%; height: 100%;"
-    : layout === "fill"
-    ? `width: 100%; height: 100%;`
-    : layout === "fullWidth"
-    ? `width: 100%; height: auto;`
-    : layout === "fixed"
-    ? ""
-    : "max-width: 100%; height: auto;";
-}
-
-// @ts-check
-
-const NonProperties = {
-  Img: [
-    "tag",
-    "content",
-    "backgroundSize",
-    "backgroundPosition",
-    "fallbackFormat",
-    "includeSourceFormat",
-    "fadeInTransition",
-    "artDirectives",
-    "cacheDir",
-  ],
-  Picture: [
-    "tag",
-    "content",
-    "backgroundSize",
-    "backgroundPosition",
-    "cacheDir",
-  ],
-  BackgroundImage: [
-    "alt",
-    "loading",
-    "decoding",
-    "layout",
-    "objectFit",
-    "objectPosition",
-    "fadeInTransition",
-    "cacheDir",
-  ],
-  BackgroundPicture: [
-    "alt",
-    "backgroundSize",
-    "backgroundPosition",
-    "cacheDir",
-  ],
-};
-
-const ImgProperties = supportedConfigs.filter(
-    (key) => !NonProperties.Img.includes(key)
-  ),
-  PictureProperties = supportedConfigs.filter(
-    (key) => !NonProperties.Picture.includes(key)
-  ),
-  BackgroundImageProperties = supportedConfigs.filter(
-    (key) => !NonProperties.BackgroundImage.includes(key)
-  ),
-  BackgroundPictureProperties = supportedConfigs.filter(
-    (key) => !NonProperties.BackgroundPicture.includes(key)
-  );
-
-const SupportedProperties = {
-  Img: ImgProperties,
-  Picture: PictureProperties,
-  BackgroundImage: BackgroundImageProperties,
-  BackgroundPicture: BackgroundPictureProperties,
-};
-
-function getFilteredProps(type, props) {
-  const filteredGlobalConfigs = filterConfigs(
-    "Global",
-    GlobalConfigOptions,
-    SupportedProperties[type],
-    { warn: false }
-  );
-
-  const { search, searchParams } = new URL(props.src, "file://");
-
-  props.src = props.src.replace(search, "");
-
-  const paramOptions = Object.fromEntries(searchParams);
-
-  const filteredLocalProps = filterConfigs(
-    type,
-    {
-      ...paramOptions,
-      ...props,
-    },
-    SupportedProperties[type]
-  );
-
-  const resolvedProps = {
-    ...filteredGlobalConfigs,
-    ...filteredLocalProps,
-  };
-
-  const {
-    src,
-    alt,
-    tag = "section",
-    content = "",
-    sizes = function (breakpoints) {
-      const maxWidth = breakpoints[breakpoints.length - 1];
-      return `(min-width: ${maxWidth}px) ${maxWidth}px, 100vw`;
-    },
-    preload,
-    loading = preload ? "eager" : "lazy",
-    decoding = "async",
-    attributes = {},
-    layout = "constrained",
-    placeholder = "blurred",
-    breakpoints,
-    objectFit = "cover",
-    objectPosition = "50% 50%",
-    backgroundSize = "cover",
-    backgroundPosition = "50% 50%",
-    format = type === "Img" ? undefined : ["avif", "webp"],
-    fallbackFormat,
-    includeSourceFormat = true,
-    formatOptions = {
-      tracedSVG: {
-        function: "trace",
-      },
-    },
-    fadeInTransition = true,
-    artDirectives,
-    ...transformConfigs
-  } = resolvedProps;
-
-  // prettier-ignore
-  const allProps = {
-    src, alt, tag, content, sizes, preload, loading, decoding, attributes, layout, placeholder,
-    breakpoints, objectFit, objectPosition, backgroundSize, backgroundPosition, format,
-    fallbackFormat, includeSourceFormat, formatOptions, fadeInTransition, artDirectives,
-    ...transformConfigs,
-  };
-
-  const filteredProps = filterConfigs(
-    type,
-    allProps,
-    SupportedProperties[type],
-    { warn: false }
-  );
-
-  return {
-    filteredProps,
-    transformConfigs,
-  };
-}
-
-// @ts-check
-
-function getBackgroundStyles(
-  images,
-  className,
-  objectFit,
-  objectPosition,
-  fadeInTransition,
-  { isBackgroundPicture = false } = {}
-) {
-  const sourcesWithFallback = images.filter(({ fallback }) => fallback);
-
-  if (sourcesWithFallback.length === 0) return "";
-
-  const staticStyles = !fadeInTransition
-    ? ""
-    : `
-    ${
-      isBackgroundPicture
-        ? `
-            .astro-imagetools-background-picture * {
-              z-index: 1;
-              position: relative;
-            }
-          `
-        : ""
-    }
-
-    .${className} {
-      --opacity: 1;
-      --z-index: 0;
-    }
-
-    ${
-      !isBackgroundPicture
-        ? `
-            .${className} img {
-              z-index: 1;
-              position: relative;
-            }
-          `
-        : ""
-    }
-
-    .${className}::after {
-      inset: 0;
-      content: "";
-      left: 0;
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      transition: opacity ${
-        typeof fadeInTransition !== "object"
-          ? "1s"
-          : (() => {
-              const {
-                delay = "0s",
-                duration = "1s",
-                timingFunction = "ease",
-              } = fadeInTransition;
-
-              return `${duration} ${timingFunction} ${delay}`;
-            })()
-      };
-      opacity: var(--opacity);
-      z-index: var(--z-index);
-    }
-  `;
-
-  const dynamicStyles = images
-    .map(({ media, fallback, object }) => {
-      const elementSelector = className + (fadeInTransition ? " img" : ""),
-        backgroundElementSelector =
-          className + (fadeInTransition ? "::after" : "");
-
-      const style = `
-        .${elementSelector} {
-          object-fit: ${object?.fit || objectFit};
-          object-position: ${object?.position || objectPosition};
-        }
-
-        .${backgroundElementSelector} {
-          background-size: ${object?.fit || objectFit};
-          background-image: url("${encodeURI(fallback)}");
-          background-position: ${object?.position || objectPosition};
-        }
-      `;
-
-      return media ? `@media ${media} { ${style} }` : style;
-    })
-    .reverse();
-
-  const backgroundStyles = [staticStyles, ...dynamicStyles].join("");
-
-  return backgroundStyles;
-}
-
-// @ts-check
-
-async function renderImg(props) {
-  const type = "Img";
-
-  const { filteredProps, transformConfigs } = getFilteredProps(type, props);
-
-  const {
-    src,
-    alt,
-    sizes,
-    preload,
-    loading,
-    decoding,
-    attributes,
-    layout,
-    breakpoints,
-    placeholder,
-    objectFit,
-    objectPosition,
-    format,
-    formatOptions,
-  } = filteredProps;
-
-  const artDirectives = [],
-    fallbackFormat = format,
-    fadeInTransition = false,
-    includeSourceFormat = false;
-
-  const {
-    img: imgAttributes = {},
-    link: linkAttributes = {},
-    style: styleAttributes = {},
-  } = attributes;
-
-  const { uuid, images } = await getImage({
-    src,
-    type,
-    sizes,
-    format,
-    breakpoints,
-    placeholder,
-    artDirectives,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    transformConfigs,
-  });
-
-  const className = `astro-imagetools-img-${uuid}`;
-
-  const { imagesizes } = images[images.length - 1];
-
-  const backgroundStyles = getBackgroundStyles(
-    images,
-    className,
-    objectFit,
-    objectPosition,
-    fadeInTransition
-  );
-
-  const style = getStyleElement({ styleAttributes, backgroundStyles });
-
-  const link = getLinkElement({ images, preload, imagesizes, linkAttributes });
-
-  const layoutStyles = getLayoutStyles({ layout });
-
-  const sources = images.flatMap(({ sources, sizes, imagesizes }) =>
-    sources.map(({ src, srcset }) =>
-      getImgElement({
-        src,
-        alt,
-        sizes,
-        style,
-        srcset,
-        loading,
-        decoding,
-        imagesizes,
-        fadeInTransition,
-        layoutStyles,
-        imgAttributes,
-        imgClassName: className,
-      })
-    )
-  );
-
-  const [img] = sources;
-
-  return { link, style, img };
-}
-
-const $$module1$3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	default: renderImg
+const $$module3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: api
 }, Symbol.toStringTag, { value: 'Module' }));
 
-createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/Img.astro", { modules: [{ module: $$module1$3, specifier: "../api/renderImg.js", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$6 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/Img.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
-const $$Img = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$6, $$props, $$slots);
-  Astro2.self = $$Img;
-  const { link, style, img } = await renderImg(Astro2.props);
-  return renderTemplate`${renderComponent($$result, "Fragment", Fragment, {}, { "default": () => renderTemplate`${markHTMLString(link + style + img)}` })}
-`;
-});
+const _tmpl$$1 = ["<div", " class=\"spin-wrapper\"><div class=\"spinonediv-1\"></div></div>"];
+function Loader() {
+  return ssr(_tmpl$$1, ssrHydrationKey());
+} 
 
-// @ts-check
+__astro_tag_component__(Loader, "@astrojs/solid-js");
 
-function getPictureElement({
-  sources,
-  className,
-  layoutStyles,
-  pictureAttributes,
-  isBackgroundPicture = false,
-}) {
-  const {
-    class: customClasses = "",
-    style: customInlineStyles = "",
-    ...restPictureAttributes
-  } = pictureAttributes;
-
-  const attributesString = getAttributesString({
-    attributes: restPictureAttributes,
+const _tmpl$ = ["<div", " class=\"product-catalog__columns\"><div class=\"product-catalog__filters\"><div class=\"product-catalog__filters-inner\"><div class=\"product-catalog__search\"><label>Filters</label><input", " placeholder=\"Search by name\"></div><div class=\"product-catalog__categories\"><label>Categories</label><div class=\"product-catalog__categories-list\">", "</div></div></div></div><div class=\"product-catalog__list\"><div class=\"product-catalog__wrapper\">", "</div></div></div>"],
+      _tmpl$2 = ["<label", "><input type=\"checkbox\"", "><span>", "</span><br></label>"],
+      _tmpl$3 = ["<div", " class=\"product-catalog__item\"><div class=\"product-catalog__img\">", "</div></div>"],
+      _tmpl$4 = ["<a", " href=\"", "\" class=\"product-catalog__item\"><img", " class=\"product-catalog__img\"><div class=\"product-catalog__info\"></div></a>"];
+function ProductCatalog(props) {
+  const [filters, setFilters] = createSignal({
+    search: "",
+    categories: []
   });
 
-  const classAttribute = ["astro-imagetools-picture", className, customClasses]
-    .join(" ")
-    .trim();
+  function searchIsEmpty(filtersState = null) {
+    if (filtersState === null) filtersState = filters();
+    return filtersState.search == "" && filtersState.categories.length == 0;
+  }
 
-  const styleAttribute = [
-    isBackgroundPicture
-      ? `position: absolute; z-index: 0; width: 100%; height: 100%; display: inline-block;`
-      : `position: relative; display: inline-block;`,
-    customInlineStyles + (customInlineStyles.endsWith(";") ? "" : ";"),
-    layoutStyles,
-  ]
-    .join(" ")
-    .trim();
+  const [data] = createResource(filters, async filters2 => {
+    if (searchIsEmpty(filters2)) {
+      return props;
+    }
 
-  const pictureElement = `<picture
-    ${attributesString}
-    class="${classAttribute}"
-    style="${styleAttribute}"
-    >${sources.join("\n")}
-  </picture>`;
+    let {
+      products,
+      categories
+    } = await api.getProducts();
 
-  return pictureElement;
-}
+    if (filters2.search) {
+      let searchResults = await searchIndex.search(filters2.search);
+      products = searchResults.map(({
+        item
+      }) => item);
+    }
 
-// @ts-check
-
-async function renderPicture(props) {
-  const type = "Picture";
-
-  const { filteredProps, transformConfigs } = getFilteredProps(type, props);
-
-  const {
-    src,
-    alt,
-    sizes,
-    preload,
-    loading,
-    decoding,
-    attributes,
-    layout,
-    placeholder,
-    breakpoints,
-    objectFit,
-    objectPosition,
-    format,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    fadeInTransition,
-    artDirectives,
-  } = filteredProps;
-
-  const {
-    img: imgAttributes = {},
-    link: linkAttributes = {},
-    style: styleAttributes = {},
-    picture: pictureAttributes = {},
-  } = attributes;
-
-  const { uuid, images } = await getImage({
-    src,
-    type,
-    sizes,
-    format,
-    breakpoints,
-    placeholder,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    artDirectives,
-    transformConfigs,
-  });
-
-  const className = `astro-imagetools-picture-${uuid}`;
-
-  const { imagesizes } = images[images.length - 1];
-
-  const backgroundStyles = getBackgroundStyles(
-    images,
-    className,
-    objectFit,
-    objectPosition,
-    fadeInTransition
-  );
-
-  const style = getStyleElement({ styleAttributes, backgroundStyles });
-
-  const link = getLinkElement({ images, preload, imagesizes, linkAttributes });
-
-  const layoutStyles = getLayoutStyles({ layout });
-
-  const sources = images.flatMap(({ media, sources, sizes, imagesizes }) =>
-    sources.map(({ format, src, srcset }) =>
-      src
-        ? getImgElement({
-            src,
-            alt,
-            sizes,
-            style,
-            srcset,
-            loading,
-            decoding,
-            imagesizes,
-            fadeInTransition,
-            layoutStyles,
-            imgAttributes,
-          })
-        : `<source
-            srcset="${srcset}"
-            sizes="${imagesizes}"
-            width="${sizes.width}"
-            height="${sizes.height}"
-            type="${`image/${format}`}"
-            ${media ? `media="${media}"` : ""}
-          />`
-    )
-  );
-
-  const picture = getPictureElement({
-    sources,
-    className,
-    layoutStyles,
-    pictureAttributes,
-  });
-
-  return { link, style, picture };
-}
-
-const $$module1$2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	default: renderPicture
-}, Symbol.toStringTag, { value: 'Module' }));
-
-createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/Picture.astro", { modules: [{ module: $$module1$2, specifier: "../api/renderPicture.js", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$5 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/Picture.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
-const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$5, $$props, $$slots);
-  Astro2.self = $$Picture;
-  const { link, style, picture } = await renderPicture(Astro2.props);
-  return renderTemplate`${renderComponent($$result, "Fragment", Fragment, {}, { "default": () => renderTemplate`${markHTMLString(link + style + picture)}` })}
-`;
-});
-
-// @ts-check
-
-function getContainerElement({
-  tag,
-  content,
-  className = "",
-  containerAttributes,
-  isBackgroundPicture = false,
-}) {
-  const {
-    class: customClasses = "",
-    style: customInlineStyles = "",
-    ...restContainerAttributes
-  } = containerAttributes;
-
-  const attributesString = getAttributesString({
-    attributes: restContainerAttributes,
-  });
-
-  const classAttribute = [
-    isBackgroundPicture
-      ? "astro-imagetools-background-picture"
-      : "astro-imagetools-background-image",
-    isBackgroundPicture ? "" : className,
-    customClasses,
-  ]
-    .join(" ")
-    .trim();
-
-  const styleAttribute = [
-    isBackgroundPicture ? "position: relative;" : "",
-    customInlineStyles + (customInlineStyles.endsWith(";") ? "" : ";"),
-  ]
-    .join(" ")
-    .trim();
-
-  const containerElement = `<${tag}
-    ${attributesString}
-    class="${classAttribute}"
-    style="${styleAttribute}"
-  >
-    ${content}
-  </${tag}>`;
-
-  return containerElement;
-}
-
-// @ts-check
-
-async function renderBackgroundImage(props) {
-  const type = "BackgroundImage";
-
-  const { filteredProps, transformConfigs } = getFilteredProps(type, props);
-
-  const {
-    src,
-    tag,
-    content,
-    preload,
-    attributes,
-    placeholder,
-    breakpoints,
-    backgroundSize,
-    backgroundPosition,
-    format,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    artDirectives,
-  } = filteredProps;
-
-  const {
-    link: linkAttributes = {},
-    style: styleAttributes = {},
-    container: containerAttributes = {},
-  } = attributes;
-
-  const sizes = "";
-
-  const { uuid, images } = await getImage({
-    src,
-    type,
-    sizes,
-    format,
-    breakpoints,
-    placeholder,
-    artDirectives,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    transformConfigs,
-  });
-
-  const className = `astro-imagetools-background-image-${uuid}`;
-
-  const { imagesizes } = images[images.length - 1];
-
-  const link = getLinkElement({ images, preload, imagesizes, linkAttributes });
-
-  const backgroundImageStylesArray = images.map(({ media, sources }) => {
-    const uuid = crypto.randomBytes(4).toString("hex").toUpperCase();
-
-    const fallbackUrlCustomVariable = `--astro-imagetools-background-image-fallback-url${uuid}`;
-
-    const newSources = {};
-
-    sources.forEach(({ src, format, srcset }) => {
-      const sources = srcset
-        .split(", ")
-        .map((source) => [
-          source.slice(0, source.lastIndexOf(" ")),
-          source.slice(source.lastIndexOf(" ") + 1, -1),
-        ]);
-
-      sources.forEach(([path, width]) => {
-        if (!newSources[width]) {
-          newSources[width] = [];
-        }
-
-        newSources[width].push({ src, format, path });
-      });
-    });
-
-    const widths = Object.keys(newSources)
-      .map((width) => parseInt(width))
-      .reverse();
-
-    const maxWidth = Math.max(...widths);
-
-    const styles = widths
-      .map((width) => {
-        const sources = newSources[width];
-
-        const styles = sources
-          .map(
-            ({ format, path }, i) =>
-              `
-                ${i !== sources.length - 1 ? `.${format} ` : ""}.${className} {
-                  background-repeat: no-repeat;
-                  background-image: url(${path}),
-                    var(${fallbackUrlCustomVariable});
-                  background-size: ${backgroundSize};
-                  background-position: ${backgroundPosition};
-                }
-              `
-          )
-          .reverse()
-          .join("");
-
-        return width === maxWidth
-          ? styles
-          : `
-              @media screen and (max-width: ${width}px) {
-                ${styles}
-              }
-            `;
-      })
-      .join("");
+    if (filters2.categories.length > 0) {
+      products = products.filter(item => filters2.categories.includes(item.category));
+    }
 
     return {
-      fallbackUrlCustomVariable,
-      styles: media
-        ? `
-              @media ${media} {
-                ${styles}
-              }
-            `
-        : styles,
+      products,
+      categories
     };
   });
+  let searchIndex;
+  onMount(() => {
+    searchIndex = new Fuse(props.products, {
+      keys: [{
+        name: "title",
+        weight: 1
+      }, {
+        name: "description",
+        weight: 0.5
+      }],
+      threshold: 0.4
+    });
+  });
 
-  const containerStyles = `
-    .${className} {
-      position: relative;
-      ${images
-        .map(({ fallback }, i) => {
-          const fallbackUrlCustomVariable =
-            backgroundImageStylesArray[i].fallbackUrlCustomVariable;
+  return ssr(_tmpl$, ssrHydrationKey(), ssrAttribute("value", escape$1(filters().search, true), false), escape$1(createComponent$1(For, {
+    get each() {
+      return data()?.categories;
+    },
 
-          return `${fallbackUrlCustomVariable}: url("${encodeURI(fallback)}");`;
-        })
-        .join("\n")}
+    children: (item, i) => {
+      const selected = () => filters().categories.includes(item);
+
+      return ssr(_tmpl$2, ssrHydrationKey() + ssrAttribute("class", selected() ? "is-selected" : "", false), ssrAttribute("checked", selected(), true), escape$1(item));
     }
-  `;
+  })), escape$1(createComponent$1(Show, {
+    get when() {
+      return searchIsEmpty() || !data.loading;
+    },
 
-  const backgroundStyles =
-    backgroundImageStylesArray.map(({ styles }) => styles).join("\n") +
-    containerStyles;
+    fallback: () => createComponent$1(For, {
+      get each() {
+        return Array(6).fill(1);
+      },
 
-  const style = getStyleElement({ styleAttributes, backgroundStyles });
+      children: () => ssr(_tmpl$3, ssrHydrationKey(), escape$1(createComponent$1(Loader, {})))
+    }),
+    children: () => createComponent$1(For, {
+      get each() {
+        return data()?.products;
+      },
 
-  const htmlElement = getContainerElement({
-    tag,
-    content,
-    className,
-    containerAttributes,
-  });
+      children: (item, i) => ssr(_tmpl$4, ssrHydrationKey(), `/product/${escape$1(item.id, true)}`, ssrAttribute("src", escape$1(item.thumbnail, true), false))
+    })
+  })));
+} 
 
-  return { link, style, htmlElement };
-}
-
-const $$module1$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	default: renderBackgroundImage
-}, Symbol.toStringTag, { value: 'Module' }));
-
-createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/BackgroundImage.astro", { modules: [{ module: $$module1$1, specifier: "../api/renderBackgroundImage.js", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [{ type: "inline", value: `
-  const { classList } = document.documentElement;
-
-  const addClass = classList.add.bind(classList);
-
-  addClass("jpeg");
-  addClass("png");
-
-  const isFormatSupported = (format, dataUri) => {
-    const image = new Image();
-
-    image.src = \`data:image/\${format};base64,\${dataUri}\`;
-
-    image.onload = addClass(format);
-  };
-
-  // TODO: Check support for JXL images
-  // isFormatSupported("jxl", "/woAEBAJCAQBACwASxLFgoUJEP3D/wA=");
-
-  isFormatSupported("webp", "UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==");
-
-  isFormatSupported(
-    "avif",
-    "AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A="
-  );
-` }] });
-const $$Astro$4 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/BackgroundImage.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
-const $$BackgroundImage = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$4, $$props, $$slots);
-  Astro2.self = $$BackgroundImage;
-  const content = await Astro2.slots.render("default");
-  const { link, style, htmlElement } = await renderBackgroundImage({
-    content,
-    ...Astro2.props
-  });
-  return renderTemplate`${renderComponent($$result, "Fragment", Fragment, {}, { "default": () => renderTemplate`${markHTMLString(link + style + htmlElement)}` })}
-
-
-`;
-});
-
-// @ts-check
-
-async function renderBackgroundPicture(props) {
-  const type = "BackgroundPicture";
-
-  const { filteredProps, transformConfigs } = getFilteredProps(type, props);
-
-  const {
-    src,
-    tag,
-    content,
-    sizes,
-    preload,
-    loading,
-    decoding,
-    attributes,
-    placeholder,
-    breakpoints,
-    objectFit,
-    objectPosition,
-    format,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    fadeInTransition,
-    artDirectives,
-  } = filteredProps;
-
-  const {
-    img: imgAttributes = {},
-    link: linkAttributes = {},
-    style: styleAttributes = {},
-    picture: pictureAttributes = {},
-    container: containerAttributes = {},
-  } = attributes;
-
-  const { uuid, images } = await getImage({
-    src,
-    type,
-    sizes,
-    format,
-    breakpoints,
-    placeholder,
-    artDirectives,
-    fallbackFormat,
-    includeSourceFormat,
-    formatOptions,
-    transformConfigs,
-  });
-
-  const className = `astro-imagetools-picture-${uuid}`;
-
-  const { imagesizes } = images[images.length - 1];
-
-  const backgroundStyles = getBackgroundStyles(
-    images,
-    className,
-    objectFit,
-    objectPosition,
-    fadeInTransition,
-    { isBackgroundPicture: true }
-  );
-
-  const style = getStyleElement({ styleAttributes, backgroundStyles });
-
-  const link = getLinkElement({ images, preload, imagesizes, linkAttributes });
-
-  const layoutStyles = getLayoutStyles({ isBackgroundImage: true });
-
-  // Background Images shouldn't convey important information
-  const alt = "";
-
-  const sources = images.flatMap(({ media, sources, sizes, imagesizes }) =>
-    sources.map(({ format, src, srcset }) =>
-      src
-        ? getImgElement({
-            src,
-            alt,
-            sizes,
-            style,
-            srcset,
-            loading,
-            decoding,
-            imagesizes,
-            fadeInTransition,
-            layoutStyles,
-            imgAttributes,
-          })
-        : `<source
-            srcset="${srcset}"
-            sizes="${imagesizes}"
-            width="${sizes.width}"
-            height="${sizes.height}"
-            type="${`image/${format}`}"
-            ${media ? `media="${media}"` : ""}
-          />`
-    )
-  );
-
-  const picture = getPictureElement({
-    sources,
-    className,
-    layoutStyles,
-    pictureAttributes,
-    isBackgroundPicture: true,
-  });
-
-  const htmlElement = getContainerElement({
-    tag,
-    content: picture + content,
-    containerAttributes,
-    isBackgroundPicture: true,
-  });
-
-  return { link, style, htmlElement };
-}
-
-const $$module1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	default: renderBackgroundPicture
-}, Symbol.toStringTag, { value: 'Module' }));
-
-const $$module2$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null
-}, Symbol.toStringTag, { value: 'Module' }));
-
-createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/BackgroundPicture.astro", { modules: [{ module: $$module1, specifier: "../api/renderBackgroundPicture.js", assert: {} }, { module: $$module2$1, specifier: "../types.d", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$3 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/BackgroundPicture.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
-const $$BackgroundPicture = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$3, $$props, $$slots);
-  Astro2.self = $$BackgroundPicture;
-  const content = await Astro2.slots.render("default");
-  const { link, style, htmlElement } = await renderBackgroundPicture({
-    content,
-    ...Astro2.props
-  });
-  return renderTemplate`${renderComponent($$result, "Fragment", Fragment, {}, { "default": () => renderTemplate`${markHTMLString(link + style + htmlElement)}` })}
-`;
-});
-
-var __freeze = Object.freeze;
-var __defProp = Object.defineProperty;
-var __template = (cooked, raw) => __freeze(__defProp(cooked, "raw", { value: __freeze(raw || cooked.slice()) }));
-var _a;
-createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/ImageSupportDetection.astro", { modules: [], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$2 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/components/ImageSupportDetection.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
-const $$ImageSupportDetection = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$2, $$props, $$slots);
-  Astro2.self = $$ImageSupportDetection;
-  return renderTemplate(_a || (_a = __template(['<!-- prettier-ignore --><script>\nconst{classList:e}=document.documentElement,A=e.add.bind(e);A("jpeg");A("png");const g=(B,d)=>{const a=new Image;a.src=`data:image/${B};base64,${d}`,a.onload=A(B)};g("webp","UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==");g("avif","AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=");\n<\/script>\n'], ['<!-- prettier-ignore --><script>\nconst{classList:e}=document.documentElement,A=e.add.bind(e);A("jpeg");A("png");const g=(B,d)=>{const a=new Image;a.src=\\`data:image/\\${B};base64,\\${d}\\`,a.onload=A(B)};g("webp","UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==");g("avif","AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=");\n<\/script>\n'])));
-});
+__astro_tag_component__(ProductCatalog, "@astrojs/solid-js");
 
 const $$module2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	Img: $$Img,
-	Picture: $$Picture,
-	BackgroundImage: $$BackgroundImage,
-	BackgroundPicture: $$BackgroundPicture,
-	ImageSupportDetection: $$ImageSupportDetection
+  __proto__: null,
+  default: ProductCatalog
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const $$metadata$1 = createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/pages/index.astro", { modules: [{ module: $$module1$4, specifier: "~/layouts/MainLayout.astro", assert: {} }, { module: $$module2, specifier: "astro-imagetools/components", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro$1 = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/pages/index.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
+const $$metadata$1 = createMetadata("/@fs/E:/Sites/astro-solid-shop/src/pages/index.astro", { modules: [{ module: $$module1, specifier: "~/layouts/MainLayout.astro", assert: {} }, { module: $$module2, specifier: "~/components/ProductCatalog/ProductCatalog", assert: {} }, { module: $$module3, specifier: "~/lib/api", assert: {} }], hydratedComponents: [ProductCatalog], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set(["load"]), hoisted: [] });
+const $$Astro$1 = createAstro("/@fs/E:/Sites/astro-solid-shop/src/pages/index.astro", "", "file:///E:/Sites/astro-solid-shop/");
 const $$Index = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro$1, $$props, $$slots);
   Astro2.self = $$Index;
-  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "head": { title: "Astro Shop" } }, { "default": () => renderTemplate`${maybeRenderHead($$result)}<main class="wrapper mt4 mb4">
-    HI
-    ${renderComponent($$result, "Img", $$Img, { "src": "https://picsum.photos/1024/768", "alt": "" })}
+  let { products, categories } = await api.getProducts();
+  return renderTemplate`${renderComponent($$result, "MainLayout", $$MainLayout, { "head": { title: "Astro Shop" } }, { "default": () => renderTemplate`${maybeRenderHead($$result)}<main class="container">
+    ${renderComponent($$result, "ProductCatalog", ProductCatalog, { "client:load": true, "products": products, "categories": categories, "client:component-hydration": "load", "client:component-path": "~/components/ProductCatalog/ProductCatalog", "client:component-export": "default" })}
   </main>` })}`;
 });
 
-const $$file$1 = "C:/Users/Andrei/Sites/astro-solid-shop/src/pages/index.astro";
+const $$file$1 = "E:/Sites/astro-solid-shop/src/pages/index.astro";
 const $$url$1 = "";
 
 const _page0 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	$$metadata: $$metadata$1,
-	default: $$Index,
-	file: $$file$1,
-	url: $$url$1
+  __proto__: null,
+  $$metadata: $$metadata$1,
+  default: $$Index,
+  file: $$file$1,
+  url: $$url$1
 }, Symbol.toStringTag, { value: 'Module' }));
 
 async function get$1({ request }) {
@@ -3368,7 +1665,7 @@ async function get$1({ request }) {
     "Content-Type": "application/xml"
   };
   let parsed = new URL(request.url);
-  let products = [];
+  let { products } = await api.getProducts();
   return {
     headers,
     body: `<?xml version="1.0" encoding="UTF-8" ?>
@@ -3402,8 +1699,8 @@ async function get$1({ request }) {
 }
 
 const _page1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	get: get$1
+  __proto__: null,
+  get: get$1
 }, Symbol.toStringTag, { value: 'Module' }));
 
 async function get({ request }) {
@@ -3419,12 +1716,12 @@ Sitemap: ${parsed?.origin}/sitemap.xml`
 }
 
 const _page2 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	get
+  __proto__: null,
+  get
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const $$metadata = createMetadata("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/pages/404.astro", { modules: [{ module: $$module1$6, specifier: "../components/MainHead.astro", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
-const $$Astro = createAstro("/@fs/C:/Users/Andrei/Sites/astro-solid-shop/src/pages/404.astro", "", "file:///C:/Users/Andrei/Sites/astro-solid-shop/");
+const $$metadata = createMetadata("/@fs/E:/Sites/astro-solid-shop/src/pages/404.astro", { modules: [{ module: $$module1$2, specifier: "../components/MainHead.astro", assert: {} }], hydratedComponents: [], clientOnlyComponents: [], hydrationDirectives: /* @__PURE__ */ new Set([]), hoisted: [] });
+const $$Astro = createAstro("/@fs/E:/Sites/astro-solid-shop/src/pages/404.astro", "", "file:///E:/Sites/astro-solid-shop/");
 const $$404 = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$404;
@@ -3440,19 +1737,19 @@ const $$404 = createComponent(async ($$result, $$props, $$slots) => {
   </body></html>`;
 });
 
-const $$file = "C:/Users/Andrei/Sites/astro-solid-shop/src/pages/404.astro";
+const $$file = "E:/Sites/astro-solid-shop/src/pages/404.astro";
 const $$url = "/404";
 
 const _page3 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
-	__proto__: null,
-	$$metadata,
-	default: $$404,
-	file: $$file,
-	url: $$url
+  __proto__: null,
+  $$metadata,
+  default: $$404,
+  file: $$file,
+  url: $$url
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const pageMap = new Map([['src/pages/index.astro', _page0],['src/pages/sitemap.xml.ts', _page1],['src/pages/robots.txt.ts', _page2],['src/pages/404.astro', _page3],]);
-const renderers = [Object.assign({"name":"astro:jsx","serverEntrypoint":"astro/jsx/server.js","jsxImportSource":"astro"}, { ssr: server_default }),Object.assign({"name":"@astrojs/solid-js","clientEntrypoint":"@astrojs/solid-js/client.js","serverEntrypoint":"@astrojs/solid-js/server.js","jsxImportSource":"solid-js"}, { ssr: _renderer1 }),];
+const renderers = [Object.assign({"name":"astro:jsx","serverEntrypoint":"astro/jsx/server.js","jsxImportSource":"astro"}, { ssr: server_default }),Object.assign({"name":"@astrojs/solid-js","clientEntrypoint":"@astrojs/solid-js/client.js","serverEntrypoint":"@astrojs/solid-js/server.js","jsxImportSource":"solid-js"}, { ssr: server_default$1 }),];
 
 if (typeof process !== "undefined") {
   if (process.argv.includes("--verbose")) ; else if (process.argv.includes("--silent")) ; else ;
@@ -3523,7 +1820,7 @@ function deserializeManifest(serializedManifest) {
   };
 }
 
-const _manifest = Object.assign(deserializeManifest({"adapterName":"@astrojs/netlify/functions","routes":[{"file":"","links":["assets/index-404.44c0378e.css","assets/index.658dac06.css"],"scripts":[{"type":"inline","value":"const{classList:d}=document.documentElement,e=d.add.bind(d);e(\"jpeg\");e(\"png\");const n=(A,B)=>{const a=new Image;a.src=`data:image/${A};base64,${B}`,a.onload=e(A)};n(\"webp\",\"UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==\");n(\"avif\",\"AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=\");var t=25;window.addEventListener(\"scroll\",function(){let A=15-Math.round(Math.min(window.scrollY,300)/300*15)+10;A!=t&&(document.getElementById(\"header\")&&(document.getElementById(\"header\").className=\"header header-p-\"+A),t=A)});\n"},{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/","type":"page","pattern":"^\\/$","segments":[],"params":[],"component":"src/pages/index.astro","pathname":"/","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/sitemap.xml","type":"endpoint","pattern":"^\\/sitemap\\.xml$","segments":[[{"content":"sitemap.xml","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/sitemap.xml.ts","pathname":"/sitemap.xml","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/robots.txt","type":"endpoint","pattern":"^\\/robots\\.txt$","segments":[[{"content":"robots.txt","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/robots.txt.ts","pathname":"/robots.txt","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":["assets/index-404.44c0378e.css"],"scripts":[{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/404","type":"page","pattern":"^\\/404\\/?$","segments":[[{"content":"404","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/404.astro","pathname":"/404","_meta":{"trailingSlash":"ignore"}}}],"base":"/","markdown":{"drafts":false,"syntaxHighlight":"shiki","shikiConfig":{"langs":[],"theme":"github-dark","wrap":false},"remarkPlugins":[],"rehypePlugins":[],"isAstroFlavoredMd":false},"pageMap":null,"renderers":[],"entryModules":{"\u0000@astrojs-ssr-virtual-entry":"entry.mjs","C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/api/utils/imagetools.js":"chunks/imagetools.7d71676c.mjs","C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/api/utils/codecs.js":"chunks/codecs.95d7f143.mjs","C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/astroViteConfigs.js":"chunks/astroViteConfigs.e6e35cf0.mjs","C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/plugin/hooks/load.js":"chunks/load.efa72cdb.mjs","C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/plugin/utils/imagetools.js":"chunks/imagetools.72f82cbc.mjs","C:/Users/Andrei/Sites/astro-solid-shop/node_modules/astro-imagetools/plugin/utils/codecs.js":"chunks/codecs.e1182cc3.mjs","@astrojs/solid-js/client.js":"client.6bd83d78.js","/astro/hoisted.js?q=0":"hoisted.4d9b83a2.js","astro:scripts/page.js":"page.3aa82516.js","astro:scripts/before-hydration.js":"data:text/javascript;charset=utf-8,//[no before-hydration script]"},"assets":["/assets/index.658dac06.css","/assets/index-404.44c0378e.css","/client.6bd83d78.js","/favicon.ico","/page.3aa82516.js","/page.3aa82516.js"]}), {
+const _manifest = Object.assign(deserializeManifest({"adapterName":"@astrojs/netlify/functions","routes":[{"file":"","links":["assets/404-index.494d8930.css","assets/index.e3e6dfda.css"],"scripts":[{"type":"inline","value":"var a=25;window.addEventListener(\"scroll\",function(){let e=15-Math.round(Math.min(window.scrollY,300)/300*15)+10;e!=a&&(document.getElementById(\"header\")&&(document.getElementById(\"header\").className=\"header header-p-\"+e),a=e)});\n"},{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/","type":"page","pattern":"^\\/$","segments":[],"params":[],"component":"src/pages/index.astro","pathname":"/","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/sitemap.xml","type":"endpoint","pattern":"^\\/sitemap\\.xml$","segments":[[{"content":"sitemap.xml","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/sitemap.xml.ts","pathname":"/sitemap.xml","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/robots.txt","type":"endpoint","pattern":"^\\/robots\\.txt$","segments":[[{"content":"robots.txt","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/robots.txt.ts","pathname":"/robots.txt","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":["assets/404-index.494d8930.css"],"scripts":[{"type":"external","value":"page.3aa82516.js"}],"routeData":{"route":"/404","type":"page","pattern":"^\\/404\\/?$","segments":[[{"content":"404","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/404.astro","pathname":"/404","_meta":{"trailingSlash":"ignore"}}}],"base":"/","markdown":{"drafts":false,"syntaxHighlight":"shiki","shikiConfig":{"langs":[],"theme":"github-dark","wrap":false},"remarkPlugins":[],"rehypePlugins":[],"remarkRehype":{},"extendDefaultPlugins":false,"isAstroFlavoredMd":false},"pageMap":null,"renderers":[],"entryModules":{"\u0000@astrojs-ssr-virtual-entry":"entry.mjs","~/components/ProductCatalog/ProductCatalog":"ProductCatalog.eeb644c1.js","@astrojs/solid-js/client.js":"client.e54424e0.js","/astro/hoisted.js?q=0":"hoisted.c38c265a.js","astro:scripts/page.js":"page.3aa82516.js","astro:scripts/before-hydration.js":"data:text/javascript;charset=utf-8,//[no before-hydration script]"},"assets":["/assets/404-index.494d8930.css","/assets/index.e3e6dfda.css","/client.e54424e0.js","/favicon.ico","/page.3aa82516.js","/ProductCatalog.eeb644c1.js","/chunks/web.68d43cb1.js","/page.3aa82516.js"]}), {
 	pageMap: pageMap,
 	renderers: renderers
 });
@@ -3537,4 +1834,4 @@ if(_start in adapter) {
 	adapter[_start](_manifest, _args);
 }
 
-export { sharp as a, fsCachePath as f, getSrcPath as g, handler, supportedImageTypes as s };
+export { handler };

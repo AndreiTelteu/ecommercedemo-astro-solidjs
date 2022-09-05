@@ -7,6 +7,6 @@ let { products, categories } = await api.getProducts();
 ---
 <MainLayout head={{title: "Astro Shop"}}>
   <main class="container">
-    <ProductCatalog client:idle products={products} categories={categories} />
+    <ProductCatalog client:load products={products} categories={categories} />
   </main>
 </MainLayout>

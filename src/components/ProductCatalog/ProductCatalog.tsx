@@ -5,12 +5,20 @@ import Loader from '~/components/Loader/Loader';
 import './ProductCatalog.scss';
 
 export default function ProductCatalog(props) {
+  const [showFilters, setShowFilters] = createSignal(false);
   const [filters, setFilters] = createSignal({
     search: '',
     categories: [],
   });
+  
+  
+  function searchIsEmpty(filtersState = null) {
+    if (filtersState === null) filtersState = filters();
+    return filtersState.search == '' && filtersState.categories.length == 0;
+  }
+  
   const [data] = createResource(filters, async (filters) => {
-    if (filters.search == '' && filters.categories.length == 0) {
+    if (searchIsEmpty(filters)) {
       return props; // initial pageload with hidrated data from ssr
     }
     let { products, categories } = await api.getProducts();
@@ -41,6 +49,7 @@ export default function ProductCatalog(props) {
       categories: [],
     });
   }
+  
   let searchTimeout = null;
   function handleSearch(event) {
     if (searchTimeout) { clearTimeout(searchTimeout); searchTimeout = null; }
@@ -48,9 +57,9 @@ export default function ProductCatalog(props) {
       setFilters({...filters(), search: event.target.value})
     }, 150);
   }
+  
   function handleCategoryToggle(item) {
     const selected = filters().categories.includes(item);
-    console.log({item, on:!selected})
     const categories = [ ...filters().categories ];
     if (selected) {
       categories.splice(categories.indexOf(item), 1);
@@ -62,8 +71,11 @@ export default function ProductCatalog(props) {
   
   return (
     <div class="product-catalog__columns">
-      <div class="product-catalog__filters">
+      <div class={`product-catalog__filters ${showFilters() ? 'is-visible':''}`}>
         <div class="product-catalog__filters-inner">
+          <button class="product-catalog__filters-toggle" onClick={() => setShowFilters(!showFilters())}>
+            {showFilters() ? '-' : '+'}
+          </button>
           <div class="product-catalog__search">
             <label>Filters</label>
             <input
@@ -95,7 +107,7 @@ export default function ProductCatalog(props) {
       <div class="product-catalog__list">
         <div class="product-catalog__wrapper">
           <Show
-            when={!data.loading}
+            when={searchIsEmpty() || !data.loading}
             fallback={() => (
               <For each={Array(6).fill(1)} children={() => (
                 <div class="product-catalog__item">
@@ -110,7 +122,12 @@ export default function ProductCatalog(props) {
                 <a href={`/product/${item.id}`} class="product-catalog__item">
                   <img src={item.thumbnail} class="product-catalog__img" />
                   <div class="product-catalog__info">
-                    
+                    <div class="product-catalog__title">
+                      {item.title}
+                    </div>
+                    <div class="product-catalog__price">
+                      {item.price} $
+                    </div>
                   </div>
                 </a>
               )} />
