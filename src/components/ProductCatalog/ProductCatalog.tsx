@@ -110,8 +110,8 @@ export default function ProductCatalog(props) {
       <div class="product-catalog__list">
         <div class="product-catalog__wrapper">
           <Show
-            when={searchIsEmpty() || !data.loading}
-            fallback={() => (
+            when={data.loading}
+            children={() => (
               <For each={Array(6).fill(1)} children={() => (
                 <div class="product-catalog__item">
                   <div class="product-catalog__img">
@@ -120,23 +120,21 @@ export default function ProductCatalog(props) {
                 </div>
               )} />
             )}
-            children={() => (
-              <For
-                each={data()?.products || []}
-                children={(item: any, i) => (
-                  <a href={`/product/${item.id}`} class="product-catalog__item">
-                    <img src={item.thumbnail} class="product-catalog__img" />
-                    <div class="product-catalog__info">
-                      <div class="product-catalog__title">
-                        {item.title}
-                      </div>
-                      <div class="product-catalog__price">
-                        {item.price} $
-                      </div>
-                    </div>
-                  </a>
-                )}
-              />
+          />
+          <For
+            each={data.loading ? [] : (data()?.products || [])}
+            children={(item: any, i) => (
+              <a href={`/product/${item.id}`} class="product-catalog__item">
+                <img src={item.thumbnail} class="product-catalog__img" />
+                <div class="product-catalog__info">
+                  <div class="product-catalog__title">
+                    {item.title}
+                  </div>
+                  <div class="product-catalog__price">
+                    {item.price} $
+                  </div>
+                </div>
+              </a>
             )}
           />
         </div>
