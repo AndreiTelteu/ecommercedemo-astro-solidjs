@@ -30,6 +30,9 @@ export default function ProductCatalog(props) {
       products = products.filter((item) => filters.categories.includes(item.category));
     }
     return { products, categories };
+  }, {
+    initialValue: props,
+    ssrLoadFrom: 'initial',
   });
   
   let searchIndex;
@@ -86,7 +89,7 @@ export default function ProductCatalog(props) {
           <div class="product-catalog__categories">
             <label>Categories</label>
             <div class="product-catalog__categories-list">
-              <For each={data()?.categories} children={(item: any, i) => {
+              <For each={data()?.categories || []} children={(item: any, i) => {
                 const selected = () => filters().categories.includes(item);
                 return (
                   <label class={selected() ? 'is-selected' : ''}>
@@ -118,19 +121,22 @@ export default function ProductCatalog(props) {
               )} />
             )}
             children={() => (
-              <For each={data()?.products} children={(item: any, i) => (
-                <a href={`/product/${item.id}`} class="product-catalog__item">
-                  <img src={item.thumbnail} class="product-catalog__img" />
-                  <div class="product-catalog__info">
-                    <div class="product-catalog__title">
-                      {item.title}
+              <For
+                each={data()?.products || []}
+                children={(item: any, i) => (
+                  <a href={`/product/${item.id}`} class="product-catalog__item">
+                    <img src={item.thumbnail} class="product-catalog__img" />
+                    <div class="product-catalog__info">
+                      <div class="product-catalog__title">
+                        {item.title}
+                      </div>
+                      <div class="product-catalog__price">
+                        {item.price} $
+                      </div>
                     </div>
-                    <div class="product-catalog__price">
-                      {item.price} $
-                    </div>
-                  </div>
-                </a>
-              )} />
+                  </a>
+                )}
+              />
             )}
           />
         </div>
