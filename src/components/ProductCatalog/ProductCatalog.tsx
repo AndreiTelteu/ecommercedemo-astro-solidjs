@@ -1,23 +1,25 @@
 import { createResource, createSignal, For, onMount, Show } from 'solid-js';
 import api from '~/lib/api';
+import useState from '~/lib/useState';
 import Fuse from 'fuse.js';
 import Loader from '~/components/Loader/Loader';
 import './ProductCatalog.scss';
 
 export default function ProductCatalog(props) {
-  const [showFilters, setShowFilters] = createSignal(false);
-  const [filters, setFilters] = createSignal({
-    search: '',
-    categories: [],
+  const state = useState({
+    showFilters: false,
+    filters: {
+      search: '',
+      categories: [],
+    }
   });
   
-  
   function searchIsEmpty(filtersState = null) {
-    if (filtersState === null) filtersState = filters();
+    if (filtersState === null) filtersState = state.filters;
     return filtersState.search == '' && filtersState.categories.length == 0;
   }
   
-  const [data] = createResource(filters, async (filters) => {
+  const [data] = createResource(() => state.filters, async (filters) => {
     if (searchIsEmpty(filters)) {
       return props; // initial pageload with hidrated data from ssr
     }
@@ -47,42 +49,42 @@ export default function ProductCatalog(props) {
   });
   
   function resetFilters() {
-    setFilters({
+    state.filters = {
       search: '',
       categories: [],
-    });
+    };
   }
   
   let searchTimeout = null;
   function handleSearch(event) {
     if (searchTimeout) { clearTimeout(searchTimeout); searchTimeout = null; }
     searchTimeout = setTimeout(() => {
-      setFilters({...filters(), search: event.target.value})
+      state.filters = { ...state.filters, search: event.target.value };
     }, 150);
   }
   
   function handleCategoryToggle(item) {
-    const selected = filters().categories.includes(item);
-    const categories = [ ...filters().categories ];
+    const selected = state.filters.categories.includes(item);
+    const categories = [ ...state.filters.categories ];
     if (selected) {
       categories.splice(categories.indexOf(item), 1);
     } else {
       categories.push(item)
     }
-    setFilters({...filters(), categories});
+    state.filters = {...state.filters, categories};
   }
   
   return (
     <div class="product-catalog__columns">
-      <div class={`product-catalog__filters ${showFilters() ? 'is-visible':''}`}>
+      <div class={`product-catalog__filters ${state.showFilters ? 'is-visible':''}`}>
         <div class="product-catalog__filters-inner">
-          <button class="product-catalog__filters-toggle" onClick={() => setShowFilters(!showFilters())}>
-            {showFilters() ? '-' : '+'}
+          <button class="product-catalog__filters-toggle" onClick={() => state.showFilters = !state.showFilters}>
+            {state.showFilters ? '-' : '+'}
           </button>
           <div class="product-catalog__search">
             <label>Filters</label>
             <input
-              value={filters().search} onInput={handleSearch}
+              value={state.filters.search} onInput={handleSearch}
               placeholder="Search by name"
             />
           </div>
@@ -90,7 +92,7 @@ export default function ProductCatalog(props) {
             <label>Categories</label>
             <div class="product-catalog__categories-list">
               <For each={data()?.categories || []} children={(item: any, i) => {
-                const selected = () => filters().categories.includes(item);
+                const selected = () => state.filters.categories.includes(item);
                 return (
                   <label class={selected() ? 'is-selected' : ''}>
                     <input
