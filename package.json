@@ -22,6 +22,8 @@
   },
   "packageManager": "yarn@3.2.2",
   "dependencies": {
+    "@suid/material": "^0.6.2",
+    "@suid/vite-plugin": "^0.0.2",
     "fuse.js": "^6.6.2"
   }
 }

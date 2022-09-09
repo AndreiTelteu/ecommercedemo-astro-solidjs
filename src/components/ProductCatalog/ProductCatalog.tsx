@@ -3,6 +3,7 @@ import api from '~/lib/api';
 import useState from '~/lib/useState';
 import Fuse from 'fuse.js';
 import Loader from '~/components/Loader/Loader';
+import TextField from "@suid/material/TextField"
 import './ProductCatalog.scss';
 
 export default function ProductCatalog(props) {
@@ -83,9 +84,14 @@ export default function ProductCatalog(props) {
           </button>
           <div class="product-catalog__search">
             <label>Filters</label>
-            <input
-              value={state.filters.search} onInput={handleSearch}
+            <TextField
+              label="Search"
+              type="search"
+              variant="outlined"
+              fullWidth
               placeholder="Search by name"
+              value={state.filters.search}
+              onInput={handleSearch}
             />
           </div>
           <div class="product-catalog__categories">
