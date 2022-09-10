@@ -4,6 +4,7 @@ export type Product = {
     title: string,
     price: number,
     discountPercentage: number,
+    thumbnail: string,
 }
 
 export type CartProduct = Product & {

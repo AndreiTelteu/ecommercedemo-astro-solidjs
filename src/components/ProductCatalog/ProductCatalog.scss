@@ -93,6 +93,29 @@
   }
   &__price {
     text-align: right;
+    font-size: 18px;
+    * {
+      vertical-align: middle;
+    }
+  }
+  &__buy {
+    appearance: none;
+    display: inline-block;
+    margin-left: 10px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: var(--border-radius);
+    color: #fff;
+    padding: 8px 26px;
+    font-size: 18px;
+    transition: all 150ms ease-in-out;
+    opacity: 1;
+    &:hover {
+      opacity: 0.9;
+    }
+    &:active {
+      opacity: 0.8;
+    }
   }
   @media (max-width: 660px) {
     &__columns {

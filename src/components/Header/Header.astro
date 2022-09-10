@@ -1,5 +1,6 @@
 ---
 import { menuItems } from '~/lib/menu-items';
+import MiniCartBtn from '~/components/MiniCartBtn/MiniCartBtn';
 import './Header.scss';
 
 const { pathname } = Astro.url;
@@ -66,6 +67,9 @@ const { pathname } = Astro.url;
           );
         })}
       </nav>
+      <section class="mini-cart-section">
+        <MiniCartBtn client:only="solid-js" />
+      </section>
     </div>
   </div>
 </header>

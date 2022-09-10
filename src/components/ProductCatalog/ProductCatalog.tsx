@@ -1,6 +1,7 @@
 import { createResource, createSignal, For, onMount, Show } from 'solid-js';
 import api from '~/lib/api';
 import useState from '~/lib/useState';
+import cart from '~/lib/cart';
 import Fuse from 'fuse.js';
 import Loader from '~/components/Loader/Loader';
 import './ProductCatalog.scss';
@@ -11,7 +12,7 @@ export default function ProductCatalog(props) {
     filters: {
       search: '',
       categories: [],
-    }
+    },
   });
   
   function searchIsEmpty(filtersState = null) {
@@ -133,7 +134,12 @@ export default function ProductCatalog(props) {
                     {item.title}
                   </div>
                   <div class="product-catalog__price">
-                    {item.price} $
+                    <span>{item.price} $</span>
+                    <button
+                      type="button"
+                      class="product-catalog__buy"
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); cart.add(item) }}
+                    >Buy</button>
                   </div>
                 </div>
               </a>

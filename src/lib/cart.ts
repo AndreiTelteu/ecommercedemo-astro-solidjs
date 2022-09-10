@@ -10,9 +10,9 @@ interface CartStore {
   reset: Function,
 }
 
-const open = atom(false);
+export const open = atom(false);
 
-const items = map<Record<string, CartProduct>>({});
+export const items = map<Record<string, CartProduct>>({});
 
 export const generateItemKey = (item: Product) => {
   return item.id; // to combine with product options/variants in the future
@@ -29,6 +29,7 @@ const add = (item: Product) => {
   } else {
     items.setKey(key, { ...item, key, qty: 1 });
   }
+  save();
 };
 
 const edit = (key: string, toUpdate: any) => {
@@ -37,6 +38,7 @@ const edit = (key: string, toUpdate: any) => {
   }
   const existingEntry = items.get()[key];
   items.setKey(key, { ...(existingEntry || {}), ...toUpdate });
+  save();
 };
 
 const remove = (key: string) => {
@@ -45,11 +47,33 @@ const remove = (key: string) => {
     delete newItems[key];
   } catch (e) {}
   items.set(newItems);
+  save(newItems);
 };
 
 const reset = () => {
   items.set({});
+  save({});
 };
+
+const init = () => {
+  if (!window?.localStorage) return;
+  let existingCart: any = window.localStorage.getItem('astro-cart');
+  try {
+    existingCart = JSON.parse(existingCart);
+  } catch (e) {
+    existingCart = {};
+  }
+  if (existingCart && Object.keys(existingCart).length) {
+    items.set(existingCart);
+  }
+}
+const save = (newItems = null) => {
+  if (!window?.localStorage) return;
+  if (newItems == null) newItems = items.get()
+  window.localStorage.setItem('astro-cart', JSON.stringify(newItems))
+};
+
+init();
 
 const cart: CartStore = {
   open,
