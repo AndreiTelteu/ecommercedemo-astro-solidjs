@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from 'solid-js';
+import { createSignal, For, onMount, Show } from 'solid-js';
 import { useStore } from '@nanostores/solid';
 import useState from '~/lib/useState';
 import cart from '~/lib/cart';
@@ -9,6 +9,9 @@ export default function MiniCartBtn(props) {
   });
   const $cartOpen = useStore(cart.open);
   const $cartItems = useStore(cart.items);
+  onMount(() => {
+    cart.init();
+  })
   
   return (
     <div class="mini-cart-wrapper">

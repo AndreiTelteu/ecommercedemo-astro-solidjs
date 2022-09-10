@@ -8,6 +8,7 @@ interface CartStore {
   edit: Function,
   remove: Function,
   reset: Function,
+  init: Function,
 }
 
 export const open = atom(false);
@@ -73,8 +74,6 @@ const save = (newItems = null) => {
   window.localStorage.setItem('astro-cart', JSON.stringify(newItems))
 };
 
-init();
-
 const cart: CartStore = {
   open,
   items,
@@ -82,5 +81,6 @@ const cart: CartStore = {
   edit,
   remove,
   reset,
+  init,
 };
 export default cart;
