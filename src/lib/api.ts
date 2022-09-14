@@ -19,4 +19,9 @@ api.getProducts = async (filters = {}) => {
   };
 };
 
+api.getProduct = async (id) => {
+  const data = await fetch(`https://dummyjson.com/products/${id}`).then(r => r.json());
+  return data;
+}
+
 export default api;
