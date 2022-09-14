@@ -22,6 +22,7 @@
   },
   "packageManager": "yarn@3.2.2",
   "dependencies": {
+    "astro-seo": "^0.6.0",
     "fuse.js": "^6.6.2"
   }
 }
