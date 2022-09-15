@@ -1,0 +1,32 @@
+
+.product-details {
+  padding: 10px;
+  background: white;
+  border-radius: var(--border-radius);
+  margin-top: 20px
+}
+
+.product-details-header {
+  &__container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    align-content: stretch;
+    justify-content: center;
+    padding: 10px;
+    gap: 10px;
+  }
+  &__preview {
+    width: 40%;
+    flex-shrink: 0;
+  }
+  &__info {
+    flex-grow: 1;
+  }
+  &__title {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 16px;
+    color: #000;
+    padding: 10px 0;
+  }
+}

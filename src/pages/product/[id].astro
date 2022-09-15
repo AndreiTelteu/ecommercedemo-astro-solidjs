@@ -1,0 +1,13 @@
+---
+import MainLayout from '~/layouts/MainLayout.astro';
+import ProductDetails from '~/components/ProductDetails/ProductDetails';
+import api from '~/lib/api';
+
+const { id } = Astro.params;
+let product = await api.getProduct(id);
+---
+<MainLayout head={{ title: product?.name }}>
+  <main class="container">
+    <ProductDetails client:load product={product} />
+  </main>
+</MainLayout>
