@@ -1,0 +1,7 @@
+version: '3.1'
+services:
+  astro:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 8080:8080
