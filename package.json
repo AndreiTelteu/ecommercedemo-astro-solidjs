@@ -10,13 +10,13 @@
     "astro": "astro"
   },
   "devDependencies": {
-    "@astrojs/netlify": "^1.0.3",
+    "@astrojs/netlify": "^1.0.4",
     "@astrojs/node": "^1.0.1",
     "@astrojs/prefetch": "^0.0.7",
     "@astrojs/sitemap": "^1.0.0",
     "@astrojs/solid-js": "^1.1.0",
-    "@nanostores/solid": "^0.2.0",
-    "astro": "^1.2.5",
+    "@nanostores/solid": "^0.3.0",
+    "astro": "^1.2.8",
     "nanostores": "^0.7.0",
     "sass": "^1.54.9",
     "solid-js": "^1.5.5"

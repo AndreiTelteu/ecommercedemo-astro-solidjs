@@ -51,15 +51,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@astrojs/markdown-remark@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@astrojs/markdown-remark@npm:1.1.1"
+"@astrojs/markdown-remark@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@astrojs/markdown-remark@npm:1.1.2"
   dependencies:
     "@astrojs/micromark-extension-mdx-jsx": ^1.0.3
     "@astrojs/prism": ^1.0.0
     acorn: ^8.7.1
     acorn-jsx: ^5.3.2
     github-slugger: ^1.4.0
+    hast-util-to-html: ^8.0.3
     mdast-util-mdx-expression: ^1.2.1
     mdast-util-mdx-jsx: ^1.2.0
     micromark-extension-mdx-expression: ^1.0.3
@@ -76,7 +77,7 @@ __metadata:
     unist-util-map: ^3.1.1
     unist-util-visit: ^4.1.0
     vfile: ^5.3.2
-  checksum: d3585ce3ae7b228d4bbf45308439513faaffd568d94367156cc0a2d7b4fbd5f4ee181896e408017a2b1dbc7102104cbab570a21b2082e392a280a4729f184dc7
+  checksum: 8352e21e29d5f7087db382bb83d9be1a4f0ed050867df6541ffed56a657da48cc2e8b44cc37229ae81f6ff5ec7489de3104d1779e16b47ac44511dea850cab41
   languageName: node
   linkType: hard
 
@@ -97,13 +98,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@astrojs/netlify@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@astrojs/netlify@npm:1.0.3"
+"@astrojs/netlify@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "@astrojs/netlify@npm:1.0.4"
   dependencies:
     "@astrojs/webapi": ^1.0.0
     esbuild: ^0.14.43
-  checksum: a5362d00bc21865e1ad42ed8501d675c1c9385af095233775d4607cc88f6ee5599bcc3ccdd75861d785b4fca391e06b7c1662fc19bc91af4e62f366613ca0abc
+  checksum: 0d1a02b247ccd0acbc21c48364a846b62c93037583401fcdee87e4ac139ffab497854a6758c44b627654666fdcdd7b2605550b3fa0239d6d6f126926253bdb3a
   languageName: node
   linkType: hard
 
@@ -581,15 +582,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nanostores/solid@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@nanostores/solid@npm:0.2.0"
+"@nanostores/solid@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@nanostores/solid@npm:0.3.0"
   dependencies:
-    nanostores: ^0.6.0
+    nanostores: ^0.7.0
   peerDependencies:
-    nanostores: ^0.6.0
+    nanostores: ^0.7.0
     solid-js: ">=1.4.0"
-  checksum: ac3b1a7159c828358d9cb6adcf04a1f3afd1f4545a8b274af06075e3396ce1ca6c1297105038dd09af63cf045828a4f2a99ab6ceb46960db8918927283229df3
+  checksum: 919aa8e3f4b09738d6652f8def7561c92a3806014ebf1507e6c2b4f21c22d78d703d8d7f7431d26c0ab02f929431484466d78983fe6191e51d7e6b25f773e9b7
   languageName: node
   linkType: hard
 
@@ -1083,13 +1084,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "astro-solid-shop@workspace:."
   dependencies:
-    "@astrojs/netlify": ^1.0.3
+    "@astrojs/netlify": ^1.0.4
     "@astrojs/node": ^1.0.1
     "@astrojs/prefetch": ^0.0.7
     "@astrojs/sitemap": ^1.0.0
     "@astrojs/solid-js": ^1.1.0
-    "@nanostores/solid": ^0.2.0
-    astro: ^1.2.5
+    "@nanostores/solid": ^0.3.0
+    astro: ^1.2.8
     astro-seo: ^0.6.0
     express: ^4.18.1
     fuse.js: ^6.6.2
@@ -1099,13 +1100,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"astro@npm:^1.2.5":
-  version: 1.2.5
-  resolution: "astro@npm:1.2.5"
+"astro@npm:^1.2.8":
+  version: 1.2.8
+  resolution: "astro@npm:1.2.8"
   dependencies:
     "@astrojs/compiler": ^0.24.0
     "@astrojs/language-server": ^0.23.0
-    "@astrojs/markdown-remark": ^1.1.1
+    "@astrojs/markdown-remark": ^1.1.2
     "@astrojs/telemetry": ^1.0.0
     "@astrojs/webapi": ^1.0.0
     "@babel/core": ^7.18.2
@@ -1157,12 +1158,12 @@ __metadata:
     tsconfig-resolver: ^3.0.1
     unist-util-visit: ^4.1.0
     vfile: ^5.3.2
-    vite: 3.1.0
+    vite: ~3.1.3
     yargs-parser: ^21.0.1
     zod: ^3.17.3
   bin:
     astro: astro.js
-  checksum: e6bd3e5d53b515b66d90f306f387c27c357e90bfd0fec6a5b045eb4e659dcda1cd95765e53268075d71c999af75b069b56961c6d4596e9e912100376d69cda11
+  checksum: e726378cae50ae6816c124ac76f968fbba507a79656fbda608320b14d8215f764237154a01534765ca2839cd02e843dd3e9a0735e2923fc6bc052990eb772b98
   languageName: node
   linkType: hard
 
@@ -2798,7 +2799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-to-html@npm:^8.0.0":
+"hast-util-to-html@npm:^8.0.0, hast-util-to-html@npm:^8.0.3":
   version: 8.0.3
   resolution: "hast-util-to-html@npm:8.0.3"
   dependencies:
@@ -4175,13 +4176,6 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 2fddd6dee994b7676f008d3ffa4ab16035a754f4bb586c61df5a22cf8c8c94017aadd360368f47d653829e0569a92b129979152ff97af23a558331e47e37cd9c
-  languageName: node
-  linkType: hard
-
-"nanostores@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "nanostores@npm:0.6.0"
-  checksum: 48e699df22e2f51f4333f827c8693ce1e4838fed3fb31ff4896efc66583143cf8cec6d34f9b3ec83b9e8d95439bbdcc3bf44dc6292d84e696e756357a131a092
   languageName: node
   linkType: hard
 
@@ -5808,9 +5802,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:3.1.0":
-  version: 3.1.0
-  resolution: "vite@npm:3.1.0"
+"vite@npm:~3.1.3":
+  version: 3.1.3
+  resolution: "vite@npm:3.1.3"
   dependencies:
     esbuild: ^0.15.6
     fsevents: ~2.3.2
@@ -5836,7 +5830,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 1a343e3d46450181f79f34ff49cca5ff59bb7472de51ea2c4a042aa076f597d27d25c49f48405e82f607af7d8c1c13a9e789402ccb1b23570132382132ec3903
+  checksum: af13c9820c292792f02d0a25fd46d8557e627b93f95bc05b5f7f1261e9565e9e69fda2df0c0898f248edb811ebcac5400a85a81625ef29749f50b18273439d91
   languageName: node
   linkType: hard
 
