@@ -1097,6 +1097,7 @@ __metadata:
     nanostores: ^0.7.0
     sass: ^1.54.9
     solid-js: ^1.5.5
+    solidjs-swiper: ^1.0.9
   languageName: unknown
   linkType: soft
 
@@ -5207,6 +5208,15 @@ __metadata:
   dependencies:
     csstype: ^3.1.0
   checksum: 2ede2032263afccc878333621f76a7aa5fbd7587a063db64c9fa40b61640f4cd5b2c56a1568f80c01afcc7673e7ee78d5dcbaf7e29d0c9045261f894bebadfb6
+  languageName: node
+  linkType: hard
+
+"solidjs-swiper@npm:^1.0.9":
+  version: 1.0.9
+  resolution: "solidjs-swiper@npm:1.0.9"
+  peerDependencies:
+    solid-js: ^1.5.5
+  checksum: 34ab602c9c22ce8e0f49cf7ab64701fd0737b9f3e09e315bea58f71c241f2b32c1cbf0c6eaa35adbf1a5bc48e138be15e131e93817f01b0c6a86ba0eba81c39d
   languageName: node
   linkType: hard
 

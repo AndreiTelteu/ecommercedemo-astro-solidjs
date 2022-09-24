@@ -1,5 +1,6 @@
 import { createEffect, For } from 'solid-js';
 import useState from '~/lib/useState';
+import { Swiper } from 'solidjs-swiper';
 import './ImageCarousel.scss';
 
 export default function ImageCarousel({ images = [], showThumbnails = false }) {
@@ -16,6 +17,16 @@ export default function ImageCarousel({ images = [], showThumbnails = false }) {
   let filteredImages = images.filter(item => !String(item).match(/thumbnail/))
   return (
     <>
+      <Swiper
+        items={filteredImages}
+        children={(item: any) => (
+          <img
+            src={item}
+            alt=""
+            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+          />
+        )}
+      />
       <div class="image-carousel__big">
         <For each={filteredImages} children={(item, index) => (
           <div class="image-carousel__big-image" ref={(el) => bigImageRefs[index()] = el}>
