@@ -26,6 +26,6 @@
     "astro-seo": "^0.6.0",
     "express": "^4.18.1",
     "fuse.js": "^6.6.2",
-    "solidjs-swiper": "^1.0.11"
+    "solidjs-swiper": "^1.0.12"
   }
 }

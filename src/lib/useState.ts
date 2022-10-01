@@ -15,7 +15,7 @@ export default function useState<T>(initialState: T): T {
     },
     set(target, key, value) {
       stateRef?.[key as string]?.[1]?.(value);
-      return value;
+      return true;
     },
   });
   return state as T;

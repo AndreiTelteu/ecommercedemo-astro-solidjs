@@ -1,13 +1,9 @@
 import { createResource, createSignal, For, onMount, Show } from 'solid-js';
 import useState from '~/lib/useState';
 import cart from '~/lib/cart';
-import ImageCarousel from '~/components/ImageCarousel/ImageCarousel';
 import './ProductDetails.scss';
 
-export default function ProductDetails({ product }) {
-  const state = useState({
-    selectedImage: 0,
-  });
+export default function ProductDetails({ product, carousel = null }) {
   
   return (
     <div class="product-details">
@@ -16,7 +12,7 @@ export default function ProductDetails({ product }) {
         <div class="product-details-header__container">
           
           <div class="product-details-header__preview">
-            <ImageCarousel images={product?.images || []} showThumbnails />
+            {carousel}
           </div>
           
           <div class="product-details-header__info">
