@@ -10,22 +10,22 @@
     "astro": "astro"
   },
   "devDependencies": {
-    "@astrojs/netlify": "^1.0.4",
-    "@astrojs/node": "^1.0.1",
+    "@astrojs/netlify": "^1.1.0",
+    "@astrojs/node": "^1.1.0",
     "@astrojs/prefetch": "^0.0.7",
     "@astrojs/sitemap": "^1.0.0",
     "@astrojs/solid-js": "^1.1.0",
     "@nanostores/solid": "^0.3.0",
-    "astro": "^1.2.8",
+    "astro": "^1.4.2",
     "nanostores": "^0.7.0",
-    "sass": "^1.54.9",
-    "solid-js": "^1.5.5"
+    "sass": "^1.55.0",
+    "solid-js": "^1.5.7"
   },
   "packageManager": "yarn@3.2.2",
   "dependencies": {
     "astro-seo": "^0.6.0",
     "express": "^4.18.1",
     "fuse.js": "^6.6.2",
-    "solidjs-swiper": "^1.0.9"
+    "solidjs-swiper": "^1.0.11"
   }
 }
