@@ -1,10 +1,10 @@
-import { createSignal, For, onMount, Show } from 'solid-js';
+import { Component, createSignal, For, onMount, Show } from 'solid-js';
 import { useStore } from '@nanostores/solid';
 import useState from '~/lib/useState';
 import cart from '~/lib/cart';
 import './MiniCartBtn.scss';
 
-export default function MiniCartBtn(props) {
+export default function MiniCartBtn(props): Component {
   const state = useState({
   });
   const $cartOpen = useStore(cart.open);

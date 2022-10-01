@@ -5,7 +5,7 @@ import './Header.scss';
 
 const { pathname } = Astro.url;
 ---
-<script>
+<script is:inline>
   var headerCompactValue = 25;
   window.addEventListener('scroll', function() {
     let newCompact = 15 - Math.round((Math.min(window.scrollY, 300) / 300) * 15) +10;
@@ -68,7 +68,7 @@ const { pathname } = Astro.url;
         })}
       </nav>
       <section class="mini-cart-section">
-        <MiniCartBtn client:only="solid-js" />
+        <MiniCartBtn client:only="solid" />
       </section>
     </div>
   </div>
