@@ -10,16 +10,16 @@
     "astro": "astro"
   },
   "devDependencies": {
-    "@astrojs/netlify": "^1.2.0",
-    "@astrojs/node": "^2.0.2",
-    "@astrojs/prefetch": "^0.1.0",
+    "@astrojs/netlify": "^1.2.1",
+    "@astrojs/node": "^3.0.0",
+    "@astrojs/prefetch": "^0.1.1",
     "@astrojs/sitemap": "^1.0.0",
-    "@astrojs/solid-js": "^1.2.1",
+    "@astrojs/solid-js": "^1.2.2",
     "@nanostores/solid": "^0.3.0",
-    "astro": "^1.6.0",
+    "astro": "^1.6.6",
     "nanostores": "^0.7.0",
-    "sass": "^1.55.0",
-    "solid-js": "^1.6.0"
+    "sass": "^1.56.1",
+    "solid-js": "^1.6.1"
   },
   "packageManager": "yarn@3.2.2",
   "dependencies": {
